@@ -1,6 +1,7 @@
-# youtube-audio-server
+# youtube-audio-server 
 Easily stream YouTube audio.
 
+[![Build Status](https://travis-ci.org/codealchemist/youtube-audio-server.svg?branch=master)](https://travis-ci.org/codealchemist/youtube-audio-server)
 
 ## Install
 
