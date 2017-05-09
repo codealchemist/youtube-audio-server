@@ -1,0 +1,32 @@
+{
+  "name": "youtube-audio-server",
+  "version": "1.0.0",
+  "description": "Easily stream YouTube audio.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "standard",
+    "test-focus": "standard-focus"
+  },
+  "bin": {
+    "yas": "./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codealchemist/youtube-audio-server.git"
+  },
+  "author": "Alberto Miranda",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/codealchemist/youtube-audio-server/issues"
+  },
+  "homepage": "https://github.com/codealchemist/youtube-audio-server#readme",
+  "dependencies": {
+    "express": "^4.15.2",
+    "express-no-favicons": "0.0.1",
+    "youtube-audio-stream": "0.0.48"
+  },
+  "devDependencies": {
+    "standard-focus": "^1.1.2"
+  }
+}
