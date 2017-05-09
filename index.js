@@ -5,7 +5,7 @@ const express = require('express')
 const nofavicon = require('express-no-favicons')
 const yt = require('youtube-audio-stream')
 const app = express()
-const port = process.env.PORT || 4000
+const port = process.env.PORT || 80
 
 // print ascii art
 var artFile = path.join(__dirname, './ascii-art.txt')
@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
 
 app.get('/:videoId', (req, res) => {
   const videoId = req.params.videoId
-  const url = `http://youtube.com/watch?v=${videoId}`
+  const url = `//youtube.com/watch?v=${videoId}`
 
   try {
     yt(url).pipe(res)

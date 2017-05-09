@@ -6,7 +6,12 @@
   </head>
   <body>
     <audio controls>
-      <source src="http://localhost:4000/HQmmM_qwG4k" type="audio/mpeg">
+      <source src="" type="audio/mpeg">
     </audio>
+
+    <script>
+      const src = `${location.href}HQmmM_qwG4k`
+      document.querySelector('audio').src = src
+    </script>
   </body>
 </html>
