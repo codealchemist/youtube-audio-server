@@ -15,7 +15,7 @@ Easily stream YouTube audio.
 
 ## Change port
 
-Default port is 4000.
+Default port is 80.
 
 You can easily change it by starting the server like:
 
