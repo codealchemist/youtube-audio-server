@@ -36,6 +36,14 @@ This will stream the requested video's audio.
 You can play it on an HTML5 audio tag or however you like.
 
 
+## About dependencies
+
+The key dependency for *youtube-audio-server* is 
+[youtube-audio-stream](https://github.com/JamesKyburz/youtube-audio-stream), 
+which depends on `ffmpeg`, which must be installed at system level, it's not
+a node dependency!
+
+
 ## Testing
 
 Just open the URL of your server instance without specifing a video id.
