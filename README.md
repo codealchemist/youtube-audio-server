@@ -1,0 +1,46 @@
+# youtube-audio-server
+Easily stream YouTube audio.
+
+
+## Install
+
+`npm install -g youtube-audio-server`
+
+
+## Run
+
+`yas`
+
+
+## Change port
+
+Default port is 4000.
+
+You can easily change it by starting the server like:
+
+`PORT=8080 yas`
+
+
+## Usage
+
+Just hit the server passing a YouTube video id, like:
+
+http://yourServerAddress:port/[videoId]
+
+For example:
+
+http://10.1.2.27:4000/HQmmM_qwG4k
+
+This will stream the requested video's audio.
+
+You can play it on an HTML5 audio tag or however you like.
+
+
+## Testing
+
+Just open the URL of your server instance without specifing a video id.
+
+This will load a test page with an HTML5 audio element that will stream a test video id.
+
+
+Enjoy!
