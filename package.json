@@ -1,6 +1,6 @@
 {
   "name": "youtube-audio-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Easily stream YouTube audio.",
   "main": "index.js",
   "scripts": {
