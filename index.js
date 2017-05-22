@@ -4,6 +4,7 @@ const path = require('path')
 const express = require('express')
 const nofavicon = require('express-no-favicons')
 const yt = require('youtube-audio-stream')
+const downloader = require('./downloader')
 const app = express()
 const port = process.env.PORT || 80
 
@@ -11,6 +12,12 @@ const port = process.env.PORT || 80
 var artFile = path.join(__dirname, './ascii-art.txt')
 var art = fs.readFileSync(artFile, 'utf8')
 console.log(art)
+
+// Run downloader.
+// If file download was specified using arguments:
+// yas --video [youtube-video-id] [--file [./sample.mp3]]
+// Will automatially download the file and exit.
+if (downloader()) return
 
 app.get('/', (req, res) => {
   const file = path.resolve(__dirname, 'index.html')
