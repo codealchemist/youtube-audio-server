@@ -1,6 +1,6 @@
 {
   "name": "youtube-audio-server",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Easily stream YouTube audio.",
   "main": "index.js",
   "scripts": {
@@ -24,6 +24,7 @@
   "dependencies": {
     "express": "^4.15.2",
     "express-no-favicons": "0.0.1",
+    "minimist": "^1.2.0",
     "youtube-audio-stream": "0.0.48"
   },
   "devDependencies": {
