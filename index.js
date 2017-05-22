@@ -13,35 +13,39 @@ var artFile = path.join(__dirname, './ascii-art.txt')
 var art = fs.readFileSync(artFile, 'utf8')
 console.log(art)
 
-// Run downloader.
-// If file download was specified using arguments:
-// yas --video [youtube-video-id] [--file [./sample.mp3]]
-// Will automatially download the file and exit.
-if (downloader()) return
+function run () {
+  // Run downloader.
+  // If file download was specified using arguments:
+  // yas --video [youtube-video-id] [--file [./sample.mp3]]
+  // Will automatially download the file and exit.
+  if (downloader()) return
 
-app.get('/', (req, res) => {
-  const file = path.resolve(__dirname, 'index.html')
-  res.sendFile(file)
-})
+  app.get('/', (req, res) => {
+    const file = path.resolve(__dirname, 'index.html')
+    res.sendFile(file)
+  })
 
-app.get('/:videoId', (req, res) => {
-  const videoId = req.params.videoId
-  const url = `//youtube.com/watch?v=${videoId}`
+  app.get('/:videoId', (req, res) => {
+    const videoId = req.params.videoId
+    const url = `//youtube.com/watch?v=${videoId}`
 
-  try {
-    yt(url).pipe(res)
-  } catch (e) {
-    res.sendStatus(500)
-  }
-})
+    try {
+      yt(url).pipe(res)
+    } catch (e) {
+      res.sendStatus(500)
+    }
+  })
 
-app.use(nofavicon())
+  app.use(nofavicon())
 
-app.use((req, res) => {
-  res.sendStatus(404)
-})
+  app.use((req, res) => {
+    res.sendStatus(404)
+  })
 
-app.listen(port, function () {
-  console.log(` 🔈  YOUTUBE AUDIO SERVER listening on port ${port}!`)
-  console.log('-'.repeat(80))
-})
+  app.listen(port, function () {
+    console.log(` 🔈  YOUTUBE AUDIO SERVER listening on port ${port}!`)
+    console.log('-'.repeat(80))
+  })
+}
+
+run()

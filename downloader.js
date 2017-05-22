@@ -21,7 +21,7 @@ function download ({video, file = './youtube-audio.mp3'}) {
 }
 
 function usage () {
-  console.info (`
+  console.info(`
     USAGE:
       yas --video [youtube-video-id] [--file [./sample.mp3]]
 
