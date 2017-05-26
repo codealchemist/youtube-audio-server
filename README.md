@@ -125,24 +125,13 @@ Just open the URL of your server instance without specifing a video id.
 
 This will load a test page with an HTML5 audio element that will stream a test video id.
 
-Also run `npm test` to lint everything using [StandardJS](https://standardjs.com)
-and to start the listener and download an audio file.
+Run `npm test` to lint everything using [StandardJS](https://standardjs.com).
 
-The output will be something like this:
-```
-$ npm test
-
-> youtube-audio-server@1.1.0 test /Users/albertomiranda/dev/youtube-audio-server
-> standard && node src/test.js
-
-Downloading HQmmM_qwG4k into whole-lotta-love.mp3...
-Listening on port http://localhost:7331.
-Yay! Video (HQmmM_qwG4k) downloaded successfully into "whole-lotta-love.mp3"!
-```
+To start the listener and download an audio file use `npm run test-run`.
 
 You can open the shown URL to test the REST API works as expected.
 
-Also, you can use `npm run test-focus` to concentrate on one linting
+You can also use `npm run test-focus` to concentrate on one linting
 issue at a time with the help of [standard-focus](https://www.npmjs.com/package/standard-focus).
 
 

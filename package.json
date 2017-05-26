@@ -5,8 +5,9 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "standard && node src/test.js",
-    "test-focus": "standard-focus"
+    "test": "standard",
+    "test-focus": "standard-focus",
+    "test-run": "node src/test.js"
   },
   "bin": {
     "yas": "./src/bin.js"
