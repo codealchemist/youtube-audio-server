@@ -1,12 +1,12 @@
 const yas = require('./index')
 
-// Download video.
+// Download audio.
 const video = 'HQmmM_qwG4k' // "Whole Lotta Love" by Led Zeppelin.
 const file = 'whole-lotta-love.mp3'
 console.log(`Downloading ${video} into ${file}...`)
 yas.downloader
   .onSuccess(({video, file}) => {
-    console.log(`Yay! Video (${video}) downloaded successfully into "${file}"!`)
+    console.log(`Yay! Audio from ${video} downloaded successfully into "${file}"!`)
   })
   .onError(({video, file, error}) => {
     console.error(`Sorry, an error ocurred when trying to download ${video}`, error)
