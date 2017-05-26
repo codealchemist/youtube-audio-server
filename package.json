@@ -1,15 +1,16 @@
 {
   "name": "youtube-audio-server",
   "version": "1.1.0",
-  "description": "Easily stream YouTube audio.",
-  "main": "index.js",
+  "description": "Easily stream and download audio from YouTube.",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node src/index.js",
     "test": "standard",
-    "test-focus": "standard-focus"
+    "test-focus": "standard-focus",
+    "test-run": "node src/test.js"
   },
   "bin": {
-    "yas": "./index.js"
+    "yas": "./src/bin.js"
   },
   "repository": {
     "type": "git",
