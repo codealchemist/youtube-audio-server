@@ -1,25 +1,23 @@
 # youtube-audio-server 
-Easily stream YouTube audio.
+Easily stream and download audio from YouTube.
 
 [![Build Status](https://travis-ci.org/codealchemist/youtube-audio-server.svg?branch=master)](https://travis-ci.org/codealchemist/youtube-audio-server)
+
+[![JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 
 ## Install
 `npm install -g youtube-audio-server`
 
+Or:
 
-## Run
-`yas`
-
-
-## Change port
-Default port is 80.
-
-You can easily change it by starting the server like:
-
-`PORT=8080 yas`
+`npm install --save youtube-audio-server`
 
 
-## Usage
+## Command line usage
+### REST API
+
+Start **YAS** with `yas`.
+
 Just hit the server passing a YouTube video id, like:
 
 http://yourServerAddress:port/[videoId]
@@ -32,11 +30,19 @@ This will stream the requested video's audio.
 
 You can play it on an HTML5 audio tag or however you like.
 
+**Change port:**
 
-## Download audio
-**YAS** can also be used to directly download audio if you pass a video id as argument.
+Default is 80.
 
-When run in this mode, the server is not started.
+You can easily change it by starting **YAS** like:
+
+`PORT=8080 yas`
+
+
+### Download audio
+**YAS** can also be used to easliy download audio.
+
+In this mode, the server is not started.
 
 **Usage:**
 
@@ -60,19 +66,56 @@ you can do this:
 `curl [your-server-url]/[youtube-video-id] > sample.mp3`
 
 
-## About dependencies
+## Programatic usage
+
+Yeah, you can also include **YAS** in your project and use it programatically!
+
+### REST API
+
+```
+const yas = require('youtube-audio-server')
+
+// Start listener (REST API).
+const port = 7331
+yas.listen(port, () => {
+  console.log(`Listening on port http://localhost:${port}.`)
+})
+
+```
+
+### Download audio
+
+```
+const yas = require('youtube-audio-server')
+
+// Download video.
+const video = 'HQmmM_qwG4k' // "Whole Lotta Love" by Led Zeppelin.
+const file = 'whole-lotta-love.mp3'
+console.log(`Downloading ${video} into ${file}...`)
+yas.downloader
+  .onSuccess(({video, file}) => {
+    console.log(`Yay! Video (${video}) downloaded successfully into "${file}"!`)
+  })
+  .onError(({video, file, error}) => {
+    console.error(`Sorry, an error ocurred when trying to download ${video}`, error)
+  })
+  .download({video, file})
+```
+
+
+## Dependencies
 The key dependency for *youtube-audio-server* is 
 [youtube-audio-stream](https://github.com/JamesKyburz/youtube-audio-stream), 
 which depends on `ffmpeg`, which must be installed at system level, it's not
 a node dependency!
 
 
-## Install ffmpeg on OSX
+### Install ffmpeg on OSX
 
 `brew install ffmpeg`
 
 
-## Install ffmpeg on Debian Linux
+### Install ffmpeg on Debian Linux
 
 `sudo apt-get install ffmpeg`
 
@@ -81,6 +124,26 @@ a node dependency!
 Just open the URL of your server instance without specifing a video id.
 
 This will load a test page with an HTML5 audio element that will stream a test video id.
+
+Also run `npm test` to lint everything using [StandardJS](https://standardjs.com)
+and to start the listener and download an audio file.
+
+The output will be something like this:
+```
+$ npm test
+
+> youtube-audio-server@1.1.0 test /Users/albertomiranda/dev/youtube-audio-server
+> standard && node src/test.js
+
+Downloading HQmmM_qwG4k into whole-lotta-love.mp3...
+Listening on port http://localhost:7331.
+Yay! Video (HQmmM_qwG4k) downloaded successfully into "whole-lotta-love.mp3"!
+```
+
+You can open the shown URL to test the REST API works as expected.
+
+Also, you can use `npm run test-focus` to concentrate on one linting
+issue at a time with the help of [standard-focus](https://www.npmjs.com/package/standard-focus).
 
 
 Enjoy!
