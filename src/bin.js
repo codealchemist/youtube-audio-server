@@ -10,7 +10,7 @@ var artFile = path.join(__dirname, './ascii-art.txt')
 var art = fs.readFileSync(artFile, 'utf8')
 console.log(art)
 
-function download ({video, file = './youtube-audio.mp3', h, help}) {
+function download ({video, file, h, help}) {
   // Display usage.
   if (help || h) {
     console.info(yas.downloader.help())
@@ -27,6 +27,7 @@ function download ({video, file = './youtube-audio.mp3', h, help}) {
     process.exit()
   }
 
+  file = file || './youtube-audio.mp3'
   console.log(`DOWNLOAD: ${video} --> ${file}`)
   yas.downloader
     .onSuccess(() => process.exit())
