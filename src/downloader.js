@@ -1,5 +1,4 @@
-const fs = require('fs')
-const yt = require('youtube-audio-stream')
+const youtube = require('./youtube')
 
 class Downloader {
   help () {
@@ -22,25 +21,15 @@ class Downloader {
   }
 
   download ({video, file = './youtube-audio.mp3'}) {
-    const url = `//youtube.com/watch?v=${video}`
-    const ws = fs.createWriteStream(file)
+    youtube.download({video, file}, (err, data) => {
+      if (err) {
+        this.handleError({video, file, error: err.message || err})
+        return
+      }
 
-    try {
-      yt(url).pipe(ws)
-    } catch (e) {
-      this.handleError({video, file, error: e.message || e})
-    }
-
-    ws.on('finish', () => {
       if (typeof this.onSuccessCallback === 'function') {
         this.onSuccessCallback({video, file})
-        ws.end()
       }
-    })
-
-    ws.on('error', (error) => {
-      this.handleError({video, file, error})
-      ws.end()
     })
 
     return this
