@@ -38,6 +38,20 @@ function listen (port, callback = () => {}) {
     })
   })
 
+  app.get('/get/:videoId', (req, res) => {
+    const videoId = req.params.videoId
+
+    youtube.get(videoId, (err, data) => {
+      if (err) {
+        console.log(err)
+        res.sendStatus(500, err)
+        return
+      }
+
+      res.json(data)
+    })
+  })
+
   app.use((req, res) => {
     res.sendStatus(404)
   })

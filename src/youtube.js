@@ -53,13 +53,11 @@ class YouTube {
       ytNode.addParam('pageToken', page)
     }
 
-    ytNode.search(query, this.pageSize, (err, results) => {
-      if (err) {
-        return callback(err)
-      }
+    ytNode.search(query, this.pageSize, callback)
+  }
 
-      callback(null, results)
-    })
+  get (id, callback) {
+    ytNode.getById(id, callback)
   }
 }
 
