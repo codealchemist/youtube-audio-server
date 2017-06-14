@@ -25,9 +25,9 @@ function listen (port, callback = () => {}) {
     }
   })
 
-  app.get('/search/:query', (req, res) => {
-    const query = req.params.query
-    youtube.search(query, (err, data) => {
+  app.get('/search/:query/:page?', (req, res) => {
+    const {query, page} = req.params
+    youtube.search(query, page, (err, data) => {
       if (err) {
         console.log(err)
         res.sendStatus(500, err)

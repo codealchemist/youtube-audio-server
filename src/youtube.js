@@ -7,8 +7,7 @@ const ytNode = new YtNode()
 ytNode.setKey(apiKey)
 
 class YouTube {
-  constructor (credentials) {
-    this.credentials = credentials
+  constructor () {
     this.pageSize = 10
   }
 
@@ -64,5 +63,4 @@ class YouTube {
   }
 }
 
-const credentials = 'TODO'
-module.exports = new YouTube(credentials)
+module.exports = new YouTube()
