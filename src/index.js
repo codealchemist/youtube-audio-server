@@ -2,11 +2,13 @@
 const path = require('path')
 const express = require('express')
 const nofavicon = require('express-no-favicons')
-const yt = require('youtube-audio-stream')
+const youtube = require('./youtube')
 const downloader = require('./downloader')
 const app = express()
 
 function listen (port, callback = () => {}) {
+  app.use(nofavicon())
+
   app.get('/', (req, res) => {
     const file = path.resolve(__dirname, 'index.html')
     res.sendFile(file)
@@ -14,16 +16,41 @@ function listen (port, callback = () => {}) {
 
   app.get('/:videoId', (req, res) => {
     const videoId = req.params.videoId
-    const url = `//youtube.com/watch?v=${videoId}`
 
     try {
-      yt(url).pipe(res)
+      youtube.stream(videoId).pipe(res)
     } catch (e) {
-      res.sendStatus(500)
+      console.error(e)
+      res.sendStatus(500, e)
     }
   })
 
-  app.use(nofavicon())
+  app.get('/search/:query/:page?', (req, res) => {
+    const {query, page} = req.params
+    youtube.search(query, page, (err, data) => {
+      if (err) {
+        console.log(err)
+        res.sendStatus(500, err)
+        return
+      }
+
+      res.json(data)
+    })
+  })
+
+  app.get('/get/:videoId', (req, res) => {
+    const videoId = req.params.videoId
+
+    youtube.get(videoId, (err, data) => {
+      if (err) {
+        console.log(err)
+        res.sendStatus(500, err)
+        return
+      }
+
+      res.json(data)
+    })
+  })
 
   app.use((req, res) => {
     res.sendStatus(404)

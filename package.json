@@ -26,7 +26,8 @@
     "express": "^4.15.2",
     "express-no-favicons": "0.0.1",
     "minimist": "^1.2.0",
-    "youtube-audio-stream": "0.0.48"
+    "youtube-audio-stream": "0.0.48",
+    "youtube-node": "^1.3.0"
   },
   "devDependencies": {
     "standard-focus": "^1.1.2"
