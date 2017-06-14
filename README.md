@@ -18,19 +18,30 @@ Or:
 
 Start **YAS** with `yas`.
 
+#### Audio stream
 Just hit the server passing a YouTube video id, like:
 
 http://yourServerAddress:port/[videoId]
 
 For example:
 
-http://10.1.2.27:4000/HQmmM_qwG4k
+http://localhost:4000/HQmmM_qwG4k
 
 This will stream the requested video's audio.
 
 You can play it on an HTML5 audio tag or however you like.
 
-**Change port:**
+#### Get metadata
+Use: http://yourServerAddress:port/get/[videoId]
+
+#### Search
+Use: http://yourServerAddress:port/search/[query]/[[pageToken]]
+
+To navigate pages you need to use `pageToken` which is provided in the results on the
+root level property `nextPageToken`.
+
+
+### Change port:
 
 Default is 80.
 
@@ -70,6 +81,7 @@ you can do this:
 
 Yeah, you can also include **YAS** in your project and use it programatically!
 
+
 ### REST API
 
 ```
@@ -83,12 +95,12 @@ yas.listen(port, () => {
 
 ```
 
+
 ### Download audio
 
 ```
 const yas = require('youtube-audio-server')
 
-// Download video.
 const video = 'HQmmM_qwG4k' // "Whole Lotta Love" by Led Zeppelin.
 const file = 'whole-lotta-love.mp3'
 console.log(`Downloading ${video} into ${file}...`)
@@ -101,6 +113,35 @@ yas.downloader
   })
   .download({video, file})
 ```
+
+
+### Get video metadata
+
+```
+const yas = require('youtube-audio-server')
+
+yas.get('HQmmM_qwG4k', (err, data) => {
+  console.log('GOT METADATA for HQmmM_qwG4k:', data || err)
+})
+```
+
+
+### Search
+
+```
+const yas = require('youtube-audio-server')
+
+yas.search({
+  query: 'led zeppelin',
+  page: null
+},
+(err, data) => {
+  console.log('RESULTS:', data || err)
+})
+```
+
+To navigate pages you need to use `pageToken` which is provided in the results on the
+root level property `data.nextPageToken`.
 
 
 ## Dependencies

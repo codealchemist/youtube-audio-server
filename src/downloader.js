@@ -20,15 +20,15 @@ class Downloader {
     }
   }
 
-  download ({video, file = './youtube-audio.mp3'}) {
-    youtube.download({video, file}, (err, data) => {
+  download ({id, file = './youtube-audio.mp3'}) {
+    youtube.download({id, file}, (err, data) => {
       if (err) {
-        this.handleError({video, file, error: err.message || err})
+        this.handleError({id, file, error: err.message || err})
         return
       }
 
       if (typeof this.onSuccessCallback === 'function') {
-        this.onSuccessCallback({video, file})
+        this.onSuccessCallback({id, file})
       }
     })
 

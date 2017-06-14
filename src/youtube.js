@@ -48,7 +48,7 @@ class YouTube {
     })
   }
 
-  search (query, page, callback) {
+  search ({query, page}, callback) {
     if (page) {
       ytNode.addParam('pageToken', page)
     }

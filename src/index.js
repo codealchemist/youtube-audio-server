@@ -27,7 +27,7 @@ function listen (port, callback = () => {}) {
 
   app.get('/search/:query/:page?', (req, res) => {
     const {query, page} = req.params
-    youtube.search(query, page, (err, data) => {
+    youtube.search({query, page}, (err, data) => {
       if (err) {
         console.log(err)
         res.sendStatus(500, err)
@@ -38,10 +38,10 @@ function listen (port, callback = () => {}) {
     })
   })
 
-  app.get('/get/:videoId', (req, res) => {
-    const videoId = req.params.videoId
+  app.get('/get/:id', (req, res) => {
+    const id = req.params.id
 
-    youtube.get(videoId, (err, data) => {
+    youtube.get(id, (err, data) => {
       if (err) {
         console.log(err)
         res.sendStatus(500, err)
@@ -59,4 +59,9 @@ function listen (port, callback = () => {}) {
   app.listen(port, callback)
 }
 
-module.exports = {listen, downloader}
+module.exports = {
+  listen,
+  downloader,
+  get: (id, callback) => youtube.get(id, callback),
+  search: ({query, page}, callback) => youtube.search({query, page}, callback)
+}
