@@ -10,7 +10,7 @@ var artFile = path.join(__dirname, './ascii-art.txt')
 var art = fs.readFileSync(artFile, 'utf8')
 console.log(art)
 
-function download ({video, file, h, help}) {
+function download ({id, file, h, help}) {
   // Display usage.
   if (help || h) {
     console.info(yas.downloader.help())
@@ -18,17 +18,17 @@ function download ({video, file, h, help}) {
   }
 
   // Nothing to download.
-  if (!file && !video) return false
+  if (!file && !id) return false
 
   // Validations.
   console.log('-'.repeat(80))
-  if (!video) {
-    console.error('Missing param: --video [youtube-video-id]')
+  if (!id) {
+    console.error('Missing param: --id [youtube-video-id]')
     process.exit()
   }
 
   file = file || './youtube-audio.mp3'
-  console.log(`DOWNLOAD: ${video} --> ${file}`)
+  console.log(`DOWNLOAD: ${id} --> ${file}`)
   yas.downloader
     .onSuccess(() => process.exit())
     .onError((error) => {

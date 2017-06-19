@@ -4,11 +4,11 @@ class Downloader {
   help () {
     return `
       USAGE:
-        yas --video [youtube-video-id] [--file [./sample.mp3]]
+        yas --id [youtube-video-id] [--file [./sample.mp3]]
 
       EXAMPLES:
-        yas --video 2zYDMN4h2hY --file ~/Downloads/Music/sample.mp3
-        yas --video 2zYDMN4h2hY
+        yas --id 2zYDMN4h2hY --file ~/Downloads/Music/sample.mp3
+        yas --id 2zYDMN4h2hY
 
       FILE defaults to ./youtube-audio.mp3 when not set.
     `

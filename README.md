@@ -57,12 +57,12 @@ In this mode, the server is not started.
 
 **Usage:**
 
-`yas --video [youtube-video-id] [--file [./sample.mp3]]`
+`yas --id [youtube-video-id] [--file [./sample.mp3]]`
 
 **Examples:**
 ```
-yas --video 2zYDMN4h2hY --file ~/Downloads/Music/sample.mp3
-yas --video 2zYDMN4h2hY
+yas --id 2zYDMN4h2hY --file ~/Downloads/Music/sample.mp3
+yas --id 2zYDMN4h2hY
 ```
 
 **NOTE:** 
@@ -101,17 +101,17 @@ yas.listen(port, () => {
 ```
 const yas = require('youtube-audio-server')
 
-const video = 'HQmmM_qwG4k' // "Whole Lotta Love" by Led Zeppelin.
+const id = 'HQmmM_qwG4k' // "Whole Lotta Love" by Led Zeppelin.
 const file = 'whole-lotta-love.mp3'
-console.log(`Downloading ${video} into ${file}...`)
+console.log(`Downloading ${id} into ${file}...`)
 yas.downloader
-  .onSuccess(({video, file}) => {
-    console.log(`Yay! Video (${video}) downloaded successfully into "${file}"!`)
+  .onSuccess(({id, file}) => {
+    console.log(`Yay! Audio (${id}) downloaded successfully into "${file}"!`)
   })
-  .onError(({video, file, error}) => {
-    console.error(`Sorry, an error ocurred when trying to download ${video}`, error)
+  .onError(({id, file, error}) => {
+    console.error(`Sorry, an error ocurred when trying to download ${id}`, error)
   })
-  .download({video, file})
+  .download({id, file})
 ```
 
 
