@@ -12,6 +12,21 @@ Or:
 
 `npm install --save youtube-audio-server`
 
+## Search and metadata
+
+**IMPORTANT:** To be able to search and get video metadata you need to start the app passing your
+Google App KEY.
+
+Your Google App needs to have the YouTube API enabled.
+
+Login at https://console.cloud.google.com to get this data.
+
+To support this features, *YAS* should be started like this:
+
+`KEY=[YOUR-APP-KEY] yas`
+
+If you use **YAS** programmatically you need to ensure the `KEY` environment var
+is set. 
 
 ## Command line usage
 ### REST API
