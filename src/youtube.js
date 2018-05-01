@@ -22,7 +22,7 @@ class YouTube {
       ffmpeg
         .format('mp3')
         .pipe(stream)
-        
+
       return stream
     } catch (e) {
       throw e
