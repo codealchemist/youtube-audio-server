@@ -1,6 +1,8 @@
 const fs = require('fs')
-const ytStream = require('youtube-audio-stream')
+const ytdl = require('ytdl-core')
 const YtNode = require('youtube-node')
+const through2 = require('through2')
+const Ffmpeg = require('fluent-ffmpeg')
 
 const apiKey = process.env.KEY
 const ytNode = new YtNode()
@@ -12,10 +14,16 @@ class YouTube {
   }
 
   stream (id, res) {
-    const url = `//youtube.com/watch?v=${id}`
+    const video = ytdl(id)
+    const ffmpeg = new Ffmpeg(video)
+    const stream = through2()
 
     try {
-      return ytStream(url)
+      ffmpeg
+        .format('mp3')
+        .pipe(stream)
+
+      return stream
     } catch (e) {
       throw e
     }
@@ -26,7 +34,7 @@ class YouTube {
     const fileWriter = fs.createWriteStream(file)
 
     try {
-      ytStream(url).pipe(fileWriter)
+      ytdl(url).pipe(fileWriter)
     } catch (e) {
       throw e
     }
