@@ -26,8 +26,8 @@ function listen (port, callback = () => {}) {
   })
 
   app.get('/search/:query/:page?', (req, res) => {
-    const {query, page} = req.params
-    youtube.search({query, page}, (err, data) => {
+    const { query, page } = req.params
+    youtube.search({ query, page }, (err, data) => {
       if (err) {
         console.log(err)
         res.sendStatus(500, err)
@@ -63,5 +63,6 @@ module.exports = {
   listen,
   downloader,
   get: (id, callback) => youtube.get(id, callback),
-  search: ({query, page}, callback) => youtube.search({query, page}, callback)
+  search: ({ query, page }, callback) => youtube.search({ query, page }, callback),
+  setKey: key => youtube.setKey(key)
 }

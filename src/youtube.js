@@ -4,13 +4,17 @@ const YtNode = require('youtube-node')
 const through2 = require('through2')
 const Ffmpeg = require('fluent-ffmpeg')
 
-const apiKey = process.env.KEY
-const ytNode = new YtNode()
-ytNode.setKey(apiKey)
-
 class YouTube {
   constructor () {
     this.pageSize = 10
+
+    const envApiKey = process.env.KEY
+    if (envApiKey) this.setKey(envApiKey)
+  }
+
+  setKey (apiKey) {
+    this.ytNode = new YtNode()
+    this.ytNode.setKey(apiKey)
   }
 
   stream (id) {
@@ -55,14 +59,14 @@ class YouTube {
 
   search ({ query, page }, callback) {
     if (page) {
-      ytNode.addParam('pageToken', page)
+      this.ytNode.addParam('pageToken', page)
     }
 
-    ytNode.search(query, this.pageSize, callback)
+    this.ytNode.search(query, this.pageSize, callback)
   }
 
   get (id, callback) {
-    ytNode.getById(id, callback)
+    this.ytNode.getById(id, callback)
   }
 }
 
