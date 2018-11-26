@@ -7,7 +7,7 @@
     "start": "./src/bin.js",
     "test": "standard",
     "test-focus": "standard-focus",
-    "test-run": "node src/test.js"
+    "test-run": "node src/test/index.js"
   },
   "bin": {
     "yas": "./src/bin.js"
