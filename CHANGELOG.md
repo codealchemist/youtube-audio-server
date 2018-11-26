@@ -9,6 +9,10 @@
 - `/chunk/[videoId]`: Saves mp3 file to disk and returns a stream to it
   with chunks supports.
 
+### Fixed
+
+- Killing ffmpeg when processing finishes.
+
 ## v2.2.0
 
 ### Added
