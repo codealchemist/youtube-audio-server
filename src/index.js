@@ -14,11 +14,26 @@ function listen (port, callback = () => {}) {
     res.sendFile(file)
   })
 
-  app.get('/:videoId', (req, res) => {
+  app.get('/chunked/:videoId', (req, res) => {
     const videoId = req.params.videoId
 
     try {
-      youtube.stream(videoId).pipe(res)
+      youtube.download({id: videoId}, (err, {id, file}) => {
+        if (err) return res.sendStatus(500, err)
+        res.sendFile(file)
+      })
+    } catch (e) {
+      console.error(e)
+      res.sendStatus(500, e)
+    }
+  })
+
+  app.get('/:videoId', (req, res) => {
+    const videoId = req.params.videoId
+    const useCache = (req.query.cache !== undefined)
+
+    try {
+      youtube.stream(videoId, useCache).pipe(res)
     } catch (e) {
       console.error(e)
       res.sendStatus(500, e)
