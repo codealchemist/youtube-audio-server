@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const mkdirp = require('mkdirp')
 const ytdl = require('ytdl-core')
 const YtNode = require('youtube-node')
 const through2 = require('through2')
@@ -11,7 +12,7 @@ class YouTube {
     this.pageSize = 10
     this.tempFolder = path.resolve(__dirname, '../temp-audio')
     console.log('TEMP AUDIO FOLDER:', this.tempFolder)
-    // TODO: mkdirp
+    mkdirp(this.tempFolder) // Create temp folder if it doesn't exist.
 
     const envApiKey = process.env.KEY
     if (envApiKey) this.setKey(envApiKey)
@@ -63,7 +64,10 @@ class YouTube {
           cache[id] = null
           ffmpeg.kill()
         })
-        .pipe(stream, { end: true })
+        .pipe(
+          stream,
+          { end: true }
+        )
 
       cache[id] = stream
       return stream
