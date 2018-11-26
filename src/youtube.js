@@ -26,7 +26,6 @@ class YouTube {
   streamDownloaded (id, callback) {
     const video = ytdl(id)
     const ffmpeg = new Ffmpeg(video)
-    const stream = through2()
     let sent = false
 
     try {
