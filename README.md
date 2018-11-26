@@ -14,6 +14,10 @@ Or:
 
 `npm install --save youtube-audio-server`
 
+## Docker image
+
+https://hub.docker.com/r/codealchemist/youtube-audio-server
+
 ## Search and metadata
 
 **IMPORTANT:** To be able to search and get video metadata you need to start the app passing your
