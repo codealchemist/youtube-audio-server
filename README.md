@@ -26,7 +26,18 @@ To support this features, *YAS* should be started like this:
 `KEY=[YOUR-APP-KEY] yas`
 
 If you use **YAS** programmatically you need to ensure the `KEY` environment var
-is set. 
+is set, or since version 2.2.0 you can also set it using the `setKey` method:
+
+```
+const yas = require('youtube-audio-server')
+yas.setKey('YOUR-KEY')
+```
+
+## Running on Heroku
+
+To be able to run **YAS** on Heroku you need to install the **ffmpeg** buildpack:
+
+`heroku buildpacks:add https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git`
 
 ## Command line usage
 ### REST API
