@@ -9,8 +9,9 @@ class Downloader {
       EXAMPLES:
         yas --id 2zYDMN4h2hY --file ~/Downloads/Music/sample.mp3
         yas --id 2zYDMN4h2hY
+        yas --id https://www.youtube.com/watch?v=2zYDMN4h2hY
 
-      FILE defaults to ./youtube-audio.mp3 when not set.
+      FILE defaults to video title or ./youtube-audio.mp3 when not set.
     `
   }
 
