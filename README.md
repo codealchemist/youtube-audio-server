@@ -16,7 +16,7 @@ Or:
 
 ## Docker image
 
-https://hub.docker.com/r/codealchemist/youtube-audio-server
+<https://hub.docker.com/r/codealchemist/youtube-audio-server>
 
 ## Search and metadata
 
@@ -25,7 +25,7 @@ Google App KEY.
 
 Your Google App needs to have the YouTube API enabled.
 
-Login at https://console.cloud.google.com to get this data.
+Login at <https://console.cloud.google.com> to get this data.
 
 To support this features, _YAS_ should be started like this:
 
@@ -34,7 +34,7 @@ To support this features, _YAS_ should be started like this:
 If you use **YAS** programmatically you need to ensure the `KEY` environment var
 is set, or since version 2.2.0 you can also set it using the `setKey` method:
 
-```
+```js
 const yas = require('youtube-audio-server')
 yas.setKey('YOUR-KEY')
 ```
@@ -55,11 +55,11 @@ Start **YAS** with `yas`.
 
 Just hit the server passing a YouTube video id, like:
 
-http://yourServerAddress:port/[videoId]
+<http://yourServerAddress:[port]/[videoId]>
 
 For example:
 
-http://localhost:4000/HQmmM_qwG4k
+<http://localhost:4000/HQmmM_qwG4k>
 
 This will stream the requested video's audio.
 
@@ -79,16 +79,16 @@ You can play it on an HTML5 audio tag or however you like.
 
 #### Get metadata
 
-Use: http://yourServerAddress:port/get/[videoId]
+Use: <http://yourServerAddress:[port]/get/[videoId]>
 
 #### Search
 
-Use: http://yourServerAddress:port/search/[query]/[[pageToken]]
+Use: <http://yourServerAddress:[port]/search/[query]/[[pageToken]]>
 
 To navigate pages you need to use `pageToken` which is provided in the results on the
 root level property `nextPageToken`.
 
-### Change port:
+### Change port
 
 Default is 80.
 
@@ -108,7 +108,7 @@ In this mode, the server is not started.
 
 **Examples:**
 
-```
+```sh
 yas --id 2zYDMN4h2hY --file ~/Downloads/Music/sample.mp3
 yas --id 2zYDMN4h2hY
 ```
@@ -130,7 +130,7 @@ Yeah, you can also include **YAS** in your project and use it programatically!
 
 ### REST API
 
-```
+```js
 const yas = require('youtube-audio-server')
 
 // Start listener (REST API).
@@ -143,7 +143,7 @@ yas.listen(port, () => {
 
 ### Download audio
 
-```
+```js
 const yas = require('youtube-audio-server')
 
 const id = 'HQmmM_qwG4k' // "Whole Lotta Love" by Led Zeppelin.
@@ -161,7 +161,7 @@ yas.downloader
 
 ### Get video metadata
 
-```
+```js
 const yas = require('youtube-audio-server')
 
 yas.get('HQmmM_qwG4k', (err, data) => {
@@ -171,7 +171,7 @@ yas.get('HQmmM_qwG4k', (err, data) => {
 
 ### Search
 
-```
+```js
 const yas = require('youtube-audio-server')
 
 yas.search({
@@ -193,7 +193,11 @@ The key dependency for _youtube-audio-server_ is
 which depends on `ffmpeg`, which must be installed at system level, it's not
 a node dependency!
 
-### Install ffmpeg on OSX
+### Install ffmpeg on Windows using Chocolatey
+
+`choco install ffmpeg`
+
+### Install ffmpeg on OS X using Homebrew
 
 `brew install ffmpeg`
 
@@ -203,7 +207,7 @@ a node dependency!
 
 ## Testing
 
-Just open the URL of your server instance without specifing a video id.
+Just open the URL of your server instance without specifying a video id.
 
 This will load a test page with an HTML5 audio element that will stream a test video id.
 
