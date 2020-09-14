@@ -1,9 +1,12 @@
 #!/usr/bin/env node
+
 const path = require('path')
 const express = require('express')
 const nofavicon = require('express-no-favicons')
 const youtube = require('./youtube')
 const downloader = require('./downloader')
+const fetchVideoInfo = require('updated-youtube-info')
+const { getCoverArt, writeMeta, getFileName } = require('./utils')
 const app = express()
 
 function listen (port, callback = () => {}) {
@@ -15,11 +18,31 @@ function listen (port, callback = () => {}) {
   })
 
   app.get('/chunk/:videoId', (req, res) => {
+    if (req.headers.range) {
+      res.sendStatus(500)
+      return
+    }
     const videoId = req.params.videoId
 
     try {
-      youtube.download({ id: videoId }, (err, { id, file }) => {
+      const fileMetaTask = fetchVideoInfo(videoId).catch((e) => {
+        console.error('WARNING: Failed to fetch metadata!', e)
+      })
+
+      youtube.download({ id: videoId }, async (err, { id, file }) => {
         if (err) return res.sendStatus(500, err)
+        const optionsTask = fileMetaTask.then(getCoverArt)
+
+        const fileName = await fileMetaTask.then(getFileName)
+        if (fileName) {
+          await writeMeta(
+            { id: videoId, file },
+            await fileMetaTask,
+            await optionsTask
+          )
+          return res.download(file, fileName)
+        }
+
         res.sendFile(file)
       })
     } catch (e) {
@@ -88,6 +111,7 @@ module.exports = {
   listen,
   downloader,
   get: (id, callback) => youtube.get(id, callback),
-  search: ({ query, page }, callback) => youtube.search({ query, page }, callback),
-  setKey: key => youtube.setKey(key)
+  search: ({ query, page }, callback) =>
+    youtube.search({ query, page }, callback),
+  setKey: (key) => youtube.setKey(key)
 }

@@ -4,12 +4,10 @@ const fs = require('fs')
 const path = require('path')
 const yas = require('./index')
 const args = require('minimist')(process.argv.slice(2))
-const port = process.env.PORT || 80
+const port = process.env.PORT || 8026
 const qs = require('qs')
-const sanitize = require('sanitize-filename')
-const fetchVideoInfo = require('youtube-info')
-const ffmetadata = require('ffmetadata')
-const dl = require('retriable-download')
+const fetchVideoInfo = require('updated-youtube-info')
+const { writeMeta, getFileName, getCoverArt } = require('./utils')
 
 // print ascii art
 var artFile = path.join(__dirname, './ascii-art.txt')
@@ -47,27 +45,6 @@ class UrlMatcher {
   }
 }
 
-function writeMeta ({ id, file }, { title, owner, channelId }, options) {
-  return new Promise((resolve, reject) => {
-    const data = {
-      title: title,
-      PUBLISHER: owner,
-      WWWARTIST: 'https://www.youtube.com/channel/' + channelId,
-      comment: 'https://youtu.be/' + id
-    }
-
-    const cb = err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    }
-
-    ffmetadata.write(file, data, Object.assign({ 'id3v1': true, 'id3v2.3': true }, options), cb)
-  })
-}
-
 async function download ({ id, file, h, help }) {
   // Display usage.
   if (help || h) {
@@ -82,8 +59,11 @@ async function download ({ id, file, h, help }) {
   console.log('-'.repeat(80))
 
   for (const matcher of [
-    new UrlMatcher(/^(https?:\/\/)?(www\.)?youtube\.com\/watch\?([^#]+)$/i, m => qs.parse(m[3]).v),
-    new UrlMatcher(/^(https?:\/\/)?youtu.be\/([^#?]+)/i, m => m[2])
+    new UrlMatcher(
+      /^(https?:\/\/)?(www\.)?youtube\.com\/watch\?([^#]+)$/i,
+      (m) => qs.parse(m[3]).v
+    ),
+    new UrlMatcher(/^(https?:\/\/)?youtu.be\/([^#?]+)/i, (m) => m[2])
   ]) {
     var videoId = matcher.getVideoId(id)
 
@@ -105,18 +85,9 @@ async function download ({ id, file, h, help }) {
     console.error('WARNING: Failed to fetch metadata!')
   }
 
-  const optionsTask = (async () => {
-    if (fileMeta) {
-      try {
-        const coverPath = await dl(fileMeta.thumbnailUrl)
-        return { attachments: [coverPath] }
-      } catch (e) {
-        console.error('WARNING: Failed to get cover image!')
-      }
-    }
-  })()
+  const optionsTask = getCoverArt(fileMeta)
 
-  file = file || (fileMeta && path.resolve(sanitize(fileMeta.title).replace(/ +/g, ' ') + '.mp3')) || './youtube-audio.mp3'
+  file = file || getFileName(fileMeta)
   console.log(`DOWNLOAD: ${id} --> ${file}`)
   yas.downloader
     .onSuccess(async () => {
@@ -148,7 +119,9 @@ async function run () {
 
   // Start youtube-audio-server.
   yas.listen(port, () => {
-    console.log(` 🔈  YOUTUBE AUDIO SERVER listening on http://localhost:${port}!`)
+    console.log(
+      ` 🔈  YOUTUBE AUDIO SERVER listening on http://localhost:${port}!`
+    )
     console.log('-'.repeat(80))
   })
 }

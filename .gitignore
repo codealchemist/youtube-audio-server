@@ -1,3 +1,4 @@
 node_modules
 npm-debug.log
 /youtube-audio-server-*.tgz
+temp-audio
