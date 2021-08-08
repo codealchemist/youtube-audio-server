@@ -98,6 +98,10 @@ You can easily change it by starting **YAS** like:
 
 `PORT=8080 yas`
 
+Or, you can set the port using args:
+
+`yas -p 8080` or `yas --port 8080`
+
 ### Download audio
 
 **YAS** can also be used to easliy download audio.
@@ -106,13 +110,14 @@ In this mode, the server is not started.
 
 **Usage:**
 
-`yas --id [youtube-video-id] [--file [./sample.mp3]]`
+`yas --id [youtube-video-id|youtube-video-url] [--file [./sample.mp3]]`
 
 **Examples:**
 
 ```
 yas --id 2zYDMN4h2hY --file ~/Downloads/Music/sample.mp3
 yas --id 2zYDMN4h2hY
+yas --id https://www.youtube.com/watch?v=2zYDMN4h2hY
 ```
 
 **NOTE:**
@@ -205,7 +210,7 @@ a node dependency!
 
 ## Testing
 
-Just open the URL of your server instance without specifing a video id.
+Just open the URL of your server instance without specifying a video id.
 
 This will load a test page with an HTML5 audio element that will stream a test video id.
 
