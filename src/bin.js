@@ -3,14 +3,14 @@ const fs = require('fs')
 const path = require('path')
 const yas = require('./index')
 const args = require('minimist')(process.argv.slice(2))
-const port = process.env.PORT || 80
+const port = args.p || args.port || process.env.PORT || 80
 
 // print ascii art
 var artFile = path.join(__dirname, './ascii-art.txt')
 var art = fs.readFileSync(artFile, 'utf8')
 console.log(art)
 
-function download ({id, file, h, help}) {
+function download ({ id, file, h, help }) {
   // Display usage.
   if (help || h) {
     console.info(yas.downloader.help())
@@ -27,11 +27,11 @@ function download ({id, file, h, help}) {
     process.exit()
   }
 
-  file = file || './youtube-audio.mp3'
+  file = file || `./youtube-audio.mp3`
   console.log(`DOWNLOAD: ${id} --> ${file}`)
   yas.downloader
     .onSuccess(() => process.exit())
-    .onError((error) => {
+    .onError(error => {
       console.error(error)
       process.exit()
     })
@@ -49,7 +49,9 @@ function run () {
 
   // Start youtube-audio-server.
   yas.listen(port, () => {
-    console.log(` 🔈  YOUTUBE AUDIO SERVER listening on http://localhost:${port}!`)
+    console.log(
+      ` 🔈  YOUTUBE AUDIO SERVER listening on http://localhost:${port}!`
+    )
     console.log('-'.repeat(80))
   })
 }
