@@ -4,47 +4,29 @@ const fs = require('fs')
 const path = require('path')
 const yas = require('./index')
 const args = require('minimist')(process.argv.slice(2))
-const port = process.env.PORT || 8026
-const qs = require('qs')
-const fetchVideoInfo = require('updated-youtube-info')
+const port = args.p || args.port || process.env.PORT || 80
+const ytdl = require('ytdl-core')
 const { writeMeta, getFileName, getCoverArt } = require('./utils')
 
 // print ascii art
 var artFile = path.join(__dirname, './ascii-art.txt')
 var art = fs.readFileSync(artFile, 'utf8')
+
 console.log(art)
 
-class UrlMatcher {
-  /**
-   *
-   * @param {RegExp} regex
-   * @param {function(RegExpExecArray): string} idExtractor
-   */
-  constructor (regex, idExtractor) {
-    this.regex = regex
-    this.idExtractor = idExtractor
-  }
+/**
+ * @typedef {Object} DownloadArgs
+ * @property {string} id
+ * @property {string} file
+ * @property {boolean} [h]
+ * @property {boolean} [help]
+ */
 
-  /**
-   *
-   * @param {string} url
-   * @returns {string}
-   */
-  getVideoId (url) {
-    try {
-      var matcher = this.regex.exec(url)
-
-      if (!matcher) {
-        return false
-      }
-
-      return this.idExtractor(matcher) || false
-    } catch (e) {
-      return false
-    }
-  }
-}
-
+/**
+ *
+ * @param {DownloadArgs} param0
+ * @returns {boolean}
+ */
 async function download ({ id, file, h, help }) {
   // Display usage.
   if (help || h) {
@@ -58,29 +40,19 @@ async function download ({ id, file, h, help }) {
   // Validations.
   console.log('-'.repeat(80))
 
-  for (const matcher of [
-    new UrlMatcher(
-      /^(https?:\/\/)?(www\.)?youtube\.com\/watch\?([^#]+)$/i,
-      (m) => qs.parse(m[3]).v
-    ),
-    new UrlMatcher(/^(https?:\/\/)?youtu.be\/([^#?]+)/i, (m) => m[2])
-  ]) {
-    var videoId = matcher.getVideoId(id)
-
-    if (videoId) {
-      id = videoId
-      break
-    }
-  }
-
   if (!id) {
     console.error('Missing param: --id [youtube-video-id]')
     process.exit()
   }
 
+  id = ytdl.getVideoID(id)
+
+  /**
+   * @type {ytdl.videoInfo}
+   */
   let fileMeta
   try {
-    fileMeta = await fetchVideoInfo(id)
+    fileMeta = await ytdl.getBasicInfo(id)
   } catch (e) {
     console.error('WARNING: Failed to fetch metadata!')
   }
@@ -101,7 +73,7 @@ async function download ({ id, file, h, help }) {
         process.exit()
       }
     })
-    .onError((error) => {
+    .onError(error => {
       console.error(error)
       process.exit()
     })

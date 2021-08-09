@@ -6,6 +6,8 @@ Easily stream and download audio from YouTube.
 
 [![JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 
+<a href="https://www.buymeacoffee.com/codealchemist" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" alt="Buy Me A Coffee" width="150px"></a>
+
 ## Install
 
 `npm install -g youtube-audio-server`
@@ -96,6 +98,10 @@ You can easily change it by starting **YAS** like:
 
 `PORT=8080 yas`
 
+Or, you can set the port using args:
+
+`yas -p 8080` or `yas --port 8080`
+
 ### Download audio
 
 **YAS** can also be used to easliy download audio.
@@ -104,13 +110,14 @@ In this mode, the server is not started.
 
 **Usage:**
 
-`yas --id [youtube-video-id] [--file [./sample.mp3]]`
+`yas --id [youtube-video-id|youtube-video-url] [--file [./sample.mp3]]`
 
 **Examples:**
 
 ```sh
 yas --id 2zYDMN4h2hY --file ~/Downloads/Music/sample.mp3
 yas --id 2zYDMN4h2hY
+yas --id https://www.youtube.com/watch?v=2zYDMN4h2hY
 ```
 
 **NOTE:**
