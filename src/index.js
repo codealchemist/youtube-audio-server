@@ -5,7 +5,7 @@ const express = require('express')
 const nofavicon = require('express-no-favicons')
 const youtube = require('./youtube')
 const downloader = require('./downloader')
-const fetchVideoInfo = require('updated-youtube-info')
+const ytdl = require('ytdl-core')
 const { getCoverArt, writeMeta, getFileName } = require('./utils')
 const app = express()
 
@@ -22,10 +22,10 @@ function listen (port, callback = () => {}) {
       res.sendStatus(500)
       return
     }
-    const videoId = req.params.videoId
+    const videoId = ytdl.getVideoID(req.params.videoId)
 
     try {
-      const fileMetaTask = fetchVideoInfo(videoId).catch((e) => {
+      const fileMetaTask = ytdl.getBasicInfo(videoId).catch((e) => {
         console.error('WARNING: Failed to fetch metadata!', e)
       })
 
