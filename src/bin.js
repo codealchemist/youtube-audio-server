@@ -3,6 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const yas = require('./index')
 const args = require('minimist')(process.argv.slice(2))
+const { bold, yellow, blue, white } = require('chalk')
 const port = args.p || args.port || process.env.PORT || 80
 
 // print ascii art
@@ -28,7 +29,7 @@ function download ({ id, file, h, help }) {
   }
 
   file = file || `./youtube-audio.mp3`
-  console.log(`DOWNLOAD: ${id} --> ${file}`)
+  console.log(`${bold(white('DOWNLOAD:'))} ${blue(id)}`)
   yas.downloader
     .onSuccess(() => process.exit())
     .onError(error => {

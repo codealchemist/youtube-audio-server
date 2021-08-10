@@ -1,18 +1,19 @@
 const fs = require('fs')
 const path = require('path')
-const mkdirp = require('mkdirp')
+const https = require('https')
+const { white, yellow, blue, bold, gray, red } = require('chalk')
 const ytdl = require('ytdl-core')
 const YtNode = require('youtube-node')
 const through2 = require('through2')
 const Ffmpeg = require('fluent-ffmpeg')
+const download = require('download')
+const sanitize = require('sanitize-filename')
 const cache = {}
 
 class YouTube {
   constructor () {
     this.pageSize = 10
-    this.tempFolder = path.resolve(__dirname, '../temp-audio')
-    console.log('TEMP AUDIO FOLDER:', this.tempFolder)
-    mkdirp(this.tempFolder) // Create temp folder if it doesn't exist.
+    this.audioFolder = path.resolve('.')
 
     const envApiKey = process.env.KEY
     if (envApiKey) this.setKey(envApiKey)
@@ -29,7 +30,7 @@ class YouTube {
     let sent = false
 
     try {
-      const file = `${this.tempFolder}/${id}.mp3`
+      const file = `${this.audioFolder}/${id}.mp3`
       ffmpeg
         .format('mp3')
         .on('end', () => {
@@ -46,7 +47,91 @@ class YouTube {
     }
   }
 
-  stream (id, useCache) {
+  async getMetadata (id) {
+    const { videoDetails } = await ytdl.getBasicInfo(id)
+    const {
+      videoId,
+      title,
+      description,
+      thumbnails,
+      video_url,
+      media
+    } = videoDetails
+    // const imgUrl = thumbnails?.length ? thumbnails[0]?.url : ''
+    const imgUrl = `https://img.youtube.com/vi/${videoId}/0.jpg`
+    const { song, category, artist, album } = media || {}
+    console.log(`${white('ᐧ Title:')} ${yellow(title)}`)
+
+    return {
+      videoId,
+      title,
+      description,
+      song,
+      category,
+      artist,
+      album,
+      video_url,
+      imgUrl
+    }
+  }
+
+  setMetadata ({ file, id, metadata }) {
+    return new Promise(async (resolve, reject) => {
+      const ffmpeg = new Ffmpeg(file)
+      const tmpFile = `${file}.tmp.mp3`
+      const {
+        videoId,
+        title,
+        description,
+        artist,
+        album,
+        video_url,
+        imgUrl
+      } = metadata
+
+      ffmpeg
+        .outputOptions('-metadata', `title="${title}"`)
+        .outputOptions('-metadata', `description="${description}"`)
+        .outputOptions('-metadata', `artist="${artist}"`)
+        .outputOptions('-metadata', `album="${album}"`)
+        .outputOptions('-metadata', `comment="${video_url}"`)
+
+      // Save and set art.
+      const imgFile = path.resolve(`./${videoId}.jpg`)
+      if (imgUrl) {
+        try {
+          process.stdout.write(white('ᐧ Download art '))
+          await this.writeFile({
+            file: imgFile,
+            stream: download(imgUrl, { retry: 3 })
+          })
+          console.log(yellow('✓'))
+          ffmpeg
+            .addInput(imgFile)
+            .outputOptions('-map', '0:0')
+            .outputOptions('-map', '1:0')
+            .outputOptions('-codec', 'copy')
+            .outputOptions('-id3v2_version', '3')
+            .save(tmpFile)
+        } catch (error) {
+          const errMessage = 'ERROR setting art image'
+          console.log(red(errMessage), gray(error.message))
+          reject(errMessage)
+        }
+      }
+
+      process.stdout.write(white('ᐧ Save metadata '))
+      ffmpeg.on('end', () => {
+        console.log(yellow('✓'))
+        fs.unlinkSync(file)
+        fs.unlinkSync(imgFile)
+        fs.renameSync(tmpFile, file)
+        resolve(ffmpeg)
+      })
+    })
+  }
+
+  async stream (id, useCache, addMetadata) {
     if (useCache) {
       const cached = cache[id]
       if (cached) return cached
@@ -57,16 +142,11 @@ class YouTube {
     const stream = through2()
 
     try {
-      ffmpeg
-        .format('mp3')
-        .on('end', () => {
-          cache[id] = null
-          ffmpeg.kill()
-        })
-        .pipe(
-          stream,
-          { end: true }
-        )
+      const ffmpegObj = ffmpeg.format('mp3').on('end', () => {
+        cache[id] = null
+        ffmpeg.kill()
+      })
+      ffmpegObj.pipe(stream, { end: true })
 
       cache[id] = stream
       return stream
@@ -75,31 +155,67 @@ class YouTube {
     }
   }
 
-  download ({ id, file }, callback) {
-    file = file || `${this.tempFolder}/${id}.mp3`
-    const fileWriter = fs.createWriteStream(file)
+  writeFile ({ file, stream }) {
+    return new Promise((resolve, reject) => {
+      const fileWriter = fs.createWriteStream(file)
+      fileWriter.on('finish', () => {
+        fileWriter.end()
+        resolve()
+      })
 
-    try {
-      this.stream(id).pipe(fileWriter)
-    } catch (e) {
-      throw e
+      fileWriter.on('error', error => {
+        fileWriter.end()
+        reject(error)
+      })
+      stream.pipe(fileWriter)
+    })
+  }
+
+  async download ({ id, file, useCache, addMetadata }, callback) {
+    // With metadata.
+    if (addMetadata) {
+      this.downloadWithMetadata({ id, file, useCache, addMetadata }, callback)
+      return
     }
 
-    fileWriter.on('finish', () => {
-      fileWriter.end()
+    // Without metadata.
+    file =
+      file || id.match(/^http.*/)
+        ? `${this.audioFolder}/youtube-audio.mp3`
+        : `${this.audioFolder}/${id}.mp3`
+    process.stdout.write(white(`ᐧ Save audio `))
+    try {
+      await this.writeFile({
+        file,
+        stream: await this.stream(id, useCache, addMetadata)
+      })
+      console.log(yellow('✓'))
+      console.log(` ${gray(file)}`)
+      callback(null, { id, file })
+    } catch (error) {
+      callback(error)
+    }
+  }
 
-      if (typeof callback === 'function') {
-        callback(null, { id, file })
-      }
-    })
+  async downloadWithMetadata ({ id, file, useCache, addMetadata }, callback) {
+    try {
+      const metadata = await this.getMetadata(id)
+      const { videoId, title } = metadata
+      const filename = sanitize(title || videoId)
+      file = file || `${this.audioFolder}/${filename}.mp3`
 
-    fileWriter.on('error', error => {
-      fileWriter.end()
-
-      if (typeof callback === 'function') {
-        callback(error, null)
-      }
-    })
+      process.stdout.write(white(`ᐧ Save audio `))
+      await this.writeFile({
+        file,
+        stream: await this.stream(id, useCache, addMetadata)
+      })
+      console.log(yellow('✓'))
+      console.log(` ${gray(file)}`)
+      await this.setMetadata({ file, id, metadata })
+      callback(null, { id, file })
+    } catch (error) {
+      callback(error)
+    }
   }
 
   search ({ query, page }, callback) {
