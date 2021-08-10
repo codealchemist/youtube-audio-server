@@ -190,7 +190,7 @@ class YouTube {
         stream: await this.stream(id, useCache, addMetadata)
       })
       console.log(yellow('✓'))
-      console.log(` ${gray(file)}`)
+      console.log(`  ${gray(file)}`)
       callback(null, { id, file })
     } catch (error) {
       callback(error)
@@ -210,7 +210,7 @@ class YouTube {
         stream: await this.stream(id, useCache, addMetadata)
       })
       console.log(yellow('✓'))
-      console.log(` ${gray(file)}`)
+      console.log(`  ${gray(file)}`)
       await this.setMetadata({ file, id, metadata })
       callback(null, { id, file })
     } catch (error) {
