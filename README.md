@@ -112,7 +112,21 @@ In this mode, the server is not started.
 
 `yas --id [youtube-video-id|youtube-video-url] [--file [./sample.mp3]]`
 
-**Examples:**
+**With metadata:**
+
+`yas --id 2zYDMN4h2hY -m`
+
+Use `-m` or `--metadata` to retrieve and persist metadata as ID3 tags, naming your file with the video title by default.
+
+Saved ID3 tags:
+
+- title
+- description
+- artist
+- album
+- comment: video URL
+
+**Other examples:**
 
 ```
 yas --id 2zYDMN4h2hY --file ~/Downloads/Music/sample.mp3
