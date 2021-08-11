@@ -174,11 +174,18 @@ yas.downloader
   .onSuccess(({id, file}) => {
     console.log(`Yay! Audio (${id}) downloaded successfully into "${file}"!`)
   })
-  .onError(({id, file, error}) => {
+  .onError(({ id, file, error }) => {
     console.error(`Sorry, an error ocurred when trying to download ${id}`, error)
   })
-  .download({id, file})
+  .download({ id, file, cache, metadata })
 ```
+
+Params:
+
+- `id`: Video ID or URL (`HQmmM_qwG4k` or `https://www.youtube.com/watch?v=HQmmM_qwG4k`)
+- `file`: Output file; defaults to video id or title when `metadata` is true
+- `cache`: Use cache
+- `metadata`: Retrieve and set metadata as ID3 tags
 
 ### Get video metadata
 
