@@ -130,7 +130,7 @@ class YouTube {
     })
   }
 
-  async stream (id, useCache, addMetadata) {
+  stream (id, useCache) {
     if (useCache) {
       const cached = cache[id]
       if (cached) return cached
@@ -218,6 +218,12 @@ class YouTube {
   }
 
   search ({ query, page }, callback) {
+    if (!this.ytNode) {
+      console.log(red('YouTube KEY required and not set'))
+      callback()
+      return
+    }
+
     if (page) {
       this.ytNode.addParam('pageToken', page)
     }
@@ -226,6 +232,12 @@ class YouTube {
   }
 
   get (id, callback) {
+    if (!this.ytNode) {
+      const error = 'YouTube KEY required and not set'
+      console.log(red(error))
+      callback(error)
+      return
+    }
     this.ytNode.getById(id, callback)
   }
 }
