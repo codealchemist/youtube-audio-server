@@ -1,7 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const https = require('https')
-const { white, yellow, blue, bold, gray, red } = require('chalk')
+const { white, yellow, gray, red } = require('chalk')
 const ytdl = require('ytdl-core')
 const YtNode = require('youtube-node')
 const through2 = require('through2')
@@ -53,7 +52,7 @@ class YouTube {
       videoId,
       title,
       description,
-      thumbnails,
+      // thumbnails,
       video_url,
       media
     } = videoDetails
@@ -70,7 +69,7 @@ class YouTube {
       category,
       artist,
       album,
-      video_url,
+      videoUrl: video_url,
       imgUrl
     }
   }
@@ -85,7 +84,7 @@ class YouTube {
         description,
         artist,
         album,
-        video_url,
+        videoUrl,
         imgUrl
       } = metadata
 
@@ -94,7 +93,7 @@ class YouTube {
         .outputOptions('-metadata', `description="${description}"`)
         .outputOptions('-metadata', `artist="${artist}"`)
         .outputOptions('-metadata', `album="${album}"`)
-        .outputOptions('-metadata', `comment="${video_url}"`)
+        .outputOptions('-metadata', `comment="${videoUrl}"`)
 
       // Save and set art.
       const imgFile = path.resolve(`./${videoId}.jpg`)

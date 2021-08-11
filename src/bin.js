@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const yas = require('./index')
 const args = require('minimist')(process.argv.slice(2))
-const { bold, yellow, blue, white } = require('chalk')
+const { bold, blue, white } = require('chalk')
 const port = args.p || args.port || process.env.PORT || 80
 
 // print ascii art
