@@ -7,6 +7,8 @@ const through2 = require('through2')
 const Ffmpeg = require('fluent-ffmpeg')
 const download = require('download')
 const sanitize = require('sanitize-filename')
+const ora = require('ora')
+const spinner = ora()
 const cache = {}
 
 class YouTube {
@@ -99,12 +101,13 @@ class YouTube {
       const imgFile = path.resolve(`./${videoId}.jpg`)
       if (imgUrl) {
         try {
-          process.stdout.write(white('ᐧ Download art '))
+          spinner.start('Download art')
           await this.writeFile({
             file: imgFile,
             stream: download(imgUrl, { retry: 3 })
           })
-          console.log(yellow('✓'))
+          spinner.succeed('Art downloaded')
+          spinner.start('Set art metadata')
           ffmpeg
             .addInput(imgFile)
             .outputOptions('-map', '0:0')
@@ -113,15 +116,14 @@ class YouTube {
             .outputOptions('-id3v2_version', '3')
             .save(tmpFile)
         } catch (error) {
-          const errMessage = 'ERROR setting art image'
-          console.log(red(errMessage), gray(error.message))
+          const errMessage = 'Error setting art metadata'
+          spinner.fail(errMessage, error)
           reject(errMessage)
         }
       }
 
-      process.stdout.write(white('ᐧ Save metadata '))
       ffmpeg.on('end', () => {
-        console.log(yellow('✓'))
+        spinner.succeed('Art saved as metadata')
         fs.unlinkSync(file)
         fs.unlinkSync(imgFile)
         fs.renameSync(tmpFile, file)
@@ -182,33 +184,41 @@ class YouTube {
       file || id.match(/^http.*/)
         ? `${this.audioFolder}/youtube-audio.mp3`
         : `${this.audioFolder}/${id}.mp3`
-    process.stdout.write(white(`ᐧ Save audio `))
+    spinner.start('Save audio')
     try {
       await this.writeFile({
         file,
         stream: await this.stream(id, useCache, addMetadata)
       })
-      console.log(yellow('✓'))
+      spinner.succeed('Audio saved')
       console.log(`  ${gray(file)}`)
       callback(null, { id, file })
     } catch (error) {
+      spinner.fail('Error saving audio', error.toString())
       callback(error)
     }
   }
 
   async downloadWithMetadata ({ id, file, useCache, addMetadata }, callback) {
+    let metadata
     try {
-      const metadata = await this.getMetadata(id)
+      metadata = await this.getMetadata(id)
       const { videoId, title } = metadata
       const filename = sanitize(title || videoId)
       file = file || `${this.audioFolder}/${filename}.mp3`
 
-      process.stdout.write(white(`ᐧ Save audio `))
+      spinner.start('Save audio')
       await this.writeFile({
         file,
         stream: await this.stream(id, useCache, addMetadata)
       })
-      console.log(yellow('✓'))
+      spinner.succeed('Audio saved')
+    } catch (error) {
+      spinner.fail('Error saving audio', error.toString())
+      callback(error)
+    }
+
+    try {
       console.log(`  ${gray(file)}`)
       await this.setMetadata({ file, id, metadata })
       callback(null, { id, file })
