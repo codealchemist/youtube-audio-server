@@ -3,6 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const yas = require('./index')
 const args = require('minimist')(process.argv.slice(2))
+const { bold, blue, white, red, gray } = require('chalk')
 const port = args.p || args.port || process.env.PORT || 80
 
 // print ascii art
@@ -23,12 +24,12 @@ function download ({ id, file, h, help }) {
   // Validations.
   console.log('-'.repeat(80))
   if (!id) {
-    console.error('Missing param: --id [youtube-video-id]')
+    console.error(red('Missing param:'), gray('--id [youtube-video-id]'))
     process.exit()
   }
 
   file = file || `./youtube-audio.mp3`
-  console.log(`DOWNLOAD: ${id} --> ${file}`)
+  console.log(`${bold(white('DOWNLOAD:'))} ${blue(id)}`)
   yas.downloader
     .onSuccess(() => process.exit())
     .onError(error => {
@@ -49,9 +50,7 @@ function run () {
 
   // Start youtube-audio-server.
   yas.listen(port, () => {
-    console.log(
-      ` 🔈  YOUTUBE AUDIO SERVER listening on http://localhost:${port}!`
-    )
+    console.log(' 🔈  Listening on ', blue(`http://localhost:${port}`))
     console.log('-'.repeat(80))
   })
 }

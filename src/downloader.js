@@ -20,17 +20,25 @@ class Downloader {
     }
   }
 
-  download ({id, file = './youtube-audio.mp3'}) {
-    youtube.download({id, file}, (err, data) => {
-      if (err) {
-        this.handleError({id, file, error: err.message || err})
-        return
-      }
+  download ({ id, file, c, cache, m, metadata }) {
+    youtube.download(
+      {
+        id,
+        file,
+        useCache: c || cache,
+        addMetadata: m || metadata
+      },
+      (err, data) => {
+        if (err) {
+          this.handleError({ id, file, error: err.message || err })
+          return
+        }
 
-      if (typeof this.onSuccessCallback === 'function') {
-        this.onSuccessCallback({id, file})
+        if (typeof this.onSuccessCallback === 'function') {
+          this.onSuccessCallback({ id, file })
+        }
       }
-    })
+    )
 
     return this
   }

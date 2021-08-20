@@ -2,6 +2,7 @@
 const path = require('path')
 const express = require('express')
 const nofavicon = require('express-no-favicons')
+const { yellow, green, gray, blue, white } = require('chalk')
 const youtube = require('./youtube')
 const downloader = require('./downloader')
 const app = express()
@@ -10,6 +11,7 @@ function listen (port, callback = () => {}) {
   app.use(nofavicon())
 
   app.get('/', (req, res) => {
+    log('Sending test page')
     const file = path.resolve(__dirname, 'index.html')
     res.sendFile(file)
   })
@@ -18,12 +20,13 @@ function listen (port, callback = () => {}) {
     const videoId = req.params.videoId
 
     try {
+      log(`Sending chunk ${blue(videoId)}`)
       youtube.download({ id: videoId }, (err, { id, file }) => {
         if (err) return res.sendStatus(500, err)
         res.sendFile(file)
       })
     } catch (e) {
-      console.error(e)
+      log(e)
       res.sendStatus(500, e)
     }
   })
@@ -32,9 +35,10 @@ function listen (port, callback = () => {}) {
     const videoId = req.params.videoId
 
     try {
+      log(`Streaming ${yellow(videoId)}`)
       youtube.stream(videoId).pipe(res)
     } catch (e) {
-      console.error(e)
+      log(e)
       res.sendStatus(500, e)
     }
   })
@@ -43,18 +47,21 @@ function listen (port, callback = () => {}) {
     const videoId = req.params.videoId
 
     try {
+      log(`Streaming cached ${green(videoId)}`)
       youtube.stream(videoId, true).pipe(res)
     } catch (e) {
-      console.error(e)
+      log(e)
       res.sendStatus(500, e)
     }
   })
 
   app.get('/search/:query/:page?', (req, res) => {
     const { query, page } = req.params
+    const pageStr = page ? gray(` #${page}`) : ''
+    log(`Searching ${yellow(query)}`, pageStr)
     youtube.search({ query, page }, (err, data) => {
       if (err) {
-        console.log(err)
+        log(err)
         res.sendStatus(500, err)
         return
       }
@@ -68,7 +75,7 @@ function listen (port, callback = () => {}) {
 
     youtube.get(id, (err, data) => {
       if (err) {
-        console.log(err)
+        log(err)
         res.sendStatus(500, err)
         return
       }
@@ -84,10 +91,16 @@ function listen (port, callback = () => {}) {
   app.listen(port, callback)
 }
 
+function log () {
+  const now = new Date()
+  console.log(gray(now.toISOString()), ...arguments)
+}
+
 module.exports = {
   listen,
   downloader,
   get: (id, callback) => youtube.get(id, callback),
-  search: ({ query, page }, callback) => youtube.search({ query, page }, callback),
+  search: ({ query, page }, callback) =>
+    youtube.search({ query, page }, callback),
   setKey: key => youtube.setKey(key)
 }

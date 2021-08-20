@@ -112,7 +112,21 @@ In this mode, the server is not started.
 
 `yas --id [youtube-video-id|youtube-video-url] [--file [./sample.mp3]]`
 
-**Examples:**
+**With metadata:**
+
+`yas --id 2zYDMN4h2hY -m`
+
+Use `-m` or `--metadata` to retrieve and persist metadata as ID3 tags, naming your file with the video title by default.
+
+Saved ID3 tags:
+
+- title
+- description
+- artist
+- album
+- comment: video URL
+
+**Other examples:**
 
 ```
 yas --id 2zYDMN4h2hY --file ~/Downloads/Music/sample.mp3
@@ -160,11 +174,18 @@ yas.downloader
   .onSuccess(({id, file}) => {
     console.log(`Yay! Audio (${id}) downloaded successfully into "${file}"!`)
   })
-  .onError(({id, file, error}) => {
+  .onError(({ id, file, error }) => {
     console.error(`Sorry, an error ocurred when trying to download ${id}`, error)
   })
-  .download({id, file})
+  .download({ id, file, cache, metadata })
 ```
+
+Params:
+
+- `id`: Video ID or URL (`HQmmM_qwG4k` or `https://www.youtube.com/watch?v=HQmmM_qwG4k`)
+- `file`: Output file; defaults to video id or title when `metadata` is true
+- `cache`: Use cache
+- `metadata`: Retrieve and set metadata as ID3 tags
 
 ### Get video metadata
 
