@@ -76,6 +76,11 @@ class YouTube {
     }
   }
 
+  setNonEmptyMetadataProp (ffmpeg, prop, value) {
+    if (!value) return
+    ffmpeg.outputOptions('-metadata', `${prop}="${value}"`)
+  }
+
   setMetadata ({ file, id, metadata }) {
     return new Promise(async (resolve, reject) => {
       const ffmpeg = new Ffmpeg(file)
@@ -90,12 +95,11 @@ class YouTube {
         imgUrl
       } = metadata
 
-      ffmpeg
-        .outputOptions('-metadata', `title="${title}"`)
-        .outputOptions('-metadata', `description="${description}"`)
-        .outputOptions('-metadata', `artist="${artist}"`)
-        .outputOptions('-metadata', `album="${album}"`)
-        .outputOptions('-metadata', `comment="${videoUrl}"`)
+      this.setNonEmptyMetadataProp(ffmpeg, 'title', title)
+      this.setNonEmptyMetadataProp(ffmpeg, 'description', description)
+      this.setNonEmptyMetadataProp(ffmpeg, 'artist', artist)
+      this.setNonEmptyMetadataProp(ffmpeg, 'album', album)
+      this.setNonEmptyMetadataProp(ffmpeg, 'comment', videoUrl)
 
       // Save and set art.
       const imgFile = path.resolve(`./${videoId}.jpg`)
