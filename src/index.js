@@ -2,7 +2,7 @@
 const path = require('path')
 const express = require('express')
 const nofavicon = require('express-no-favicons')
-const { yellow, green, gray, blue, white } = require('chalk')
+const { yellow, green, gray, blue } = require('chalk')
 const youtube = require('./youtube')
 const downloader = require('./downloader')
 const app = express()
