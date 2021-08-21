@@ -1,5 +1,24 @@
 # youtube-audio-server changelog
 
+## v2.7.0
+
+### Added
+
+- `onMetadata` callback for `downloader`
+- Returning `filename` on `onSuccess` response
+
+## v2.6.1
+
+### Fixed
+
+- Avoid saving empty metadata
+
+## v2.6.0
+
+### Added
+
+- metadata support
+
 ## v2.3.0
 
 ### Added

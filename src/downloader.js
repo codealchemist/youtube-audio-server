@@ -26,16 +26,17 @@ class Downloader {
         id,
         file,
         useCache: c || cache,
-        addMetadata: m || metadata
+        addMetadata: m || metadata,
+        onMetadata: this.onMetadataCallback
       },
-      (err, data) => {
-        if (err) {
-          this.handleError({ id, file, error: err.message || err })
+      (error, data) => {
+        if (error) {
+          this.handleError({ id, file, error })
           return
         }
 
         if (typeof this.onSuccessCallback === 'function') {
-          this.onSuccessCallback({ id, file })
+          this.onSuccessCallback(data)
         }
       }
     )
@@ -50,6 +51,11 @@ class Downloader {
 
   onError (callback) {
     if (typeof callback === 'function') this.onErrorCallback = callback
+    return this
+  }
+
+  onMetadata (callback) {
+    if (typeof callback === 'function') this.onMetadataCallback = callback
     return this
   }
 }

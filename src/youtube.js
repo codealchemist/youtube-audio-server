@@ -176,10 +176,10 @@ class YouTube {
     })
   }
 
-  async download ({ id, file, useCache, addMetadata }, callback) {
+  async download ({ id, file, useCache, addMetadata, onMetadata }, callback) {
     // With metadata.
     if (addMetadata) {
-      this.downloadWithMetadata({ id, file, useCache, addMetadata }, callback)
+      this.downloadWithMetadata({ id, file, useCache, addMetadata, onMetadata }, callback)
       return
     }
 
@@ -203,12 +203,22 @@ class YouTube {
     }
   }
 
-  async downloadWithMetadata ({ id, file, useCache, addMetadata }, callback) {
+  async downloadWithMetadata ({ id, file, useCache, addMetadata, onMetadata }, callback) {
     let metadata
+    let filename
     try {
       metadata = await this.getMetadata(id)
+      if (typeof onMetadata === 'function') {
+        onMetadata({ id, ...metadata })
+      }
+    } catch (error) {
+      callback(error)
+      return
+    }
+
+    try {
       const { videoId, title } = metadata
-      const filename = sanitize(title || videoId)
+      filename = sanitize(title || videoId)
       file = file || `${this.audioFolder}/${filename}.mp3`
 
       spinner.start('Save audio')
@@ -220,14 +230,16 @@ class YouTube {
     } catch (error) {
       spinner.fail('Error saving audio', error.toString())
       callback(error)
+      return
     }
 
     try {
       console.log(`  ${gray(file)}`)
       await this.setMetadata({ file, id, metadata })
-      callback(null, { id, file })
+      callback(null, { id, file, filename })
     } catch (error) {
       callback(error)
+      return
     }
   }
 
