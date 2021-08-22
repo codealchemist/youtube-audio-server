@@ -1,5 +1,11 @@
 # youtube-audio-server changelog
 
+## v2.8.0
+
+### Added
+
+- `setFolder` to optionally set the folder were content will be downloaded.
+
 ## v2.7.1
 
 ### Fixed

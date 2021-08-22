@@ -171,6 +171,7 @@ const id = 'HQmmM_qwG4k' // "Whole Lotta Love" by Led Zeppelin.
 const file = 'whole-lotta-love.mp3'
 console.log(`Downloading ${id} into ${file}...`)
 yas.downloader
+  .setFolder('some/folder') // Optionally set a folder for downloaded content.
   .onSuccess(({id, file}) => {
     console.log(`Yay! Audio (${id}) downloaded successfully into "${file}"!`)
   })

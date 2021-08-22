@@ -58,6 +58,11 @@ class Downloader {
     if (typeof callback === 'function') this.onMetadataCallback = callback
     return this
   }
+
+  setFolder(folder) {
+    youtube.setFolder(folder)
+    return this
+  }
 }
 
 const downloader = new Downloader()
