@@ -29,6 +29,7 @@
     "express-no-favicons": "0.0.1",
     "fluent-ffmpeg": "^2.1.2",
     "minimist": "^1.2.0",
+    "mkdirp": "^0.5.1",
     "ora": "^5.4.1",
     "sanitize-filename": "^1.6.3",
     "through2": "^2.0.3",
