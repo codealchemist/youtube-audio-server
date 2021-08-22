@@ -1,5 +1,11 @@
 # youtube-audio-server changelog
 
+## v2.8.1
+
+### Fixed
+
+- Using folder configured with `setFolder` to save temp files.
+
 ## v2.8.0
 
 ### Added
