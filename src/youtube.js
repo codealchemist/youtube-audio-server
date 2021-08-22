@@ -127,11 +127,17 @@ class YouTube {
       }
 
       ffmpeg.on('end', () => {
-        spinner.succeed('Art saved as metadata')
-        fs.unlinkSync(file)
-        fs.unlinkSync(imgFile)
-        fs.renameSync(tmpFile, file)
-        resolve(ffmpeg)
+        try {
+          fs.unlinkSync(file)
+          fs.unlinkSync(imgFile)
+          fs.renameSync(tmpFile, file)
+          spinner.succeed('Art saved as metadata')
+          resolve(ffmpeg)
+        } catch (error) {
+          const errMessage = 'Error removing temp files'
+          spinner.fail(errMessage, error)
+          reject(errMessage)
+        }
       })
     })
   }

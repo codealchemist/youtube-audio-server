@@ -1,5 +1,11 @@
 # youtube-audio-server changelog
 
+## v2.7.1
+
+### Fixed
+
+- Handling temp file errors
+
 ## v2.7.0
 
 ### Added
