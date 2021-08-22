@@ -113,7 +113,7 @@ class YouTube {
       this.setNonEmptyMetadataProp(ffmpeg, 'comment', videoUrl)
 
       // Save and set art.
-      const imgFile = path.resolve(`./${videoId}.jpg`)
+      const imgFile = `${this.audioFolder}/${videoId}.jpg`
       if (imgUrl) {
         try {
           spinner.start('Download art')
