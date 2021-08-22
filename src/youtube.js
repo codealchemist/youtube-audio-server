@@ -9,6 +9,7 @@ const download = require('download')
 const sanitize = require('sanitize-filename')
 const ora = require('ora')
 const spinner = ora()
+const mkdirp = require('mkdirp')
 const cache = {}
 
 class YouTube {
@@ -18,6 +19,16 @@ class YouTube {
 
     const envApiKey = process.env.KEY
     if (envApiKey) this.setKey(envApiKey)
+  }
+
+  setFolder(folder) {
+    try {
+      mkdirp.sync(folder)
+      console.log('Using audio folder:', folder)
+      this.audioFolder = folder
+    } catch (error) {
+      console.log(`Error creating folder: ${folder}`, error)
+    }
   }
 
   setKey (apiKey) {
