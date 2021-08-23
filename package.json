@@ -38,8 +38,5 @@
   },
   "devDependencies": {
     "standard-focus": "^1.1.2"
-  },
-  "engines": {
-    "node": "8.*"
   }
 }
