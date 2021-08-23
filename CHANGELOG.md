@@ -1,5 +1,11 @@
 # youtube-audio-server changelog
 
+## v2.8.2
+
+### Removed
+
+- Removed engines from package.json.
+
 ## v2.8.1
 
 ### Fixed
