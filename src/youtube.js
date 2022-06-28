@@ -159,7 +159,7 @@ class YouTube {
       if (cached) return cached
     }
 
-    const video = ytdl(id)
+    const video = ytdl(id, { quality: 'highestaudio' })
     const ffmpeg = new Ffmpeg(video)
     const stream = through2()
 
