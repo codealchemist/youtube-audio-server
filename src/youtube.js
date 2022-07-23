@@ -202,9 +202,9 @@ class YouTube {
 
     // Without metadata.
     file =
-      file || id.match(/^http.*/)
+      file || (id.match(/^http.*/)
         ? `${this.audioFolder}/youtube-audio.mp3`
-        : `${this.audioFolder}/${id}.mp3`
+        : `${this.audioFolder}/${id}.mp3`)
     spinner.start('Save audio')
     try {
       await this.writeFile({
