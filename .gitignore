@@ -2,5 +2,7 @@ node_modules
 npm-debug.log
 *.json
 *.mp3
+*.part
 !package.json
 !package-lock.json
+.DS_Store

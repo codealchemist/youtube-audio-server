@@ -50,13 +50,6 @@
   <body>
     <p>Welcome to</p>
     <h1>YouTube Audio Server</h1>
-    <audio controls>
-      <source src="" type="audio/mpeg" />
-    </audio>
-
-    <script>
-      const src = `${location.href}HQmmM_qwG4k`
-      document.querySelector('audio').src = src
-    </script>
+    <audio controls preload="none" src="HQmmM_qwG4k"></audio>
   </body>
 </html>
