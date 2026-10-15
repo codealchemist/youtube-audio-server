@@ -1,45 +1,41 @@
-const youtube = require('./youtube')
+import youtube from './youtube.js'
 
-class Downloader {
+export class Downloader {
+  constructor (source = youtube) {
+    this.youtube = source
+  }
+
   help () {
     return `
       USAGE:
-        yas --id [youtube-video-id] [--file [./sample.mp3]]
+        yas --id [youtube-video-id|youtube-video-url] [--file [./sample.mp3]] [-m]
 
       EXAMPLES:
         yas --id 2zYDMN4h2hY --file ~/Downloads/Music/sample.mp3
-        yas --id 2zYDMN4h2hY
+        yas --id https://www.youtube.com/watch?v=2zYDMN4h2hY
+        yas --id 2zYDMN4h2hY -m
 
-      FILE defaults to ./youtube-audio.mp3 when not set.
+      OPTIONS:
+        --file          Output file. Defaults to ./[videoId].mp3, or to
+                        ./[video title].mp3 with --metadata.
+        -m, --metadata  Save title, artist, album, URL and cover art as ID3 tags.
     `
   }
 
-  handleError (params) {
-    if (typeof this.onErrorCallback === 'function') {
-      this.onErrorCallback(params)
-    }
-  }
-
-  download ({ id, file, c, cache, m, metadata }) {
-    youtube.download(
-      {
+  // `c`/`cache` are accepted for compatibility with 2.x; downloads always
+  // fetch fresh audio.
+  download ({ id, file, m, metadata } = {}) {
+    this.youtube
+      .download({
         id,
         file,
-        useCache: c || cache,
         addMetadata: m || metadata,
         onMetadata: this.onMetadataCallback
-      },
-      (error, data) => {
-        if (error) {
-          this.handleError({ id, file, error })
-          return
-        }
-
-        if (typeof this.onSuccessCallback === 'function') {
-          this.onSuccessCallback(data)
-        }
-      }
-    )
+      })
+      .then(
+        data => this.onSuccessCallback?.(data),
+        error => this.onErrorCallback?.({ id, file, error })
+      )
 
     return this
   }
@@ -59,11 +55,10 @@ class Downloader {
     return this
   }
 
-  setFolder(folder) {
-    youtube.setFolder(folder)
+  setFolder (folder) {
+    this.youtube.setFolder(folder)
     return this
   }
 }
 
-const downloader = new Downloader()
-module.exports = downloader
+export default new Downloader()

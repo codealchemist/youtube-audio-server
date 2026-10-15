@@ -1,0 +1,68 @@
+#!/usr/bin/env node
+// Stand-in for yt-dlp in tests. Behaviour depends on the video id:
+//   unavailable  -> fails like a removed video
+//   brokenvideo  -> fails with an unknown error
+//   slowrequest  -> sends a little audio, then hangs until killed
+//   toolongvide  -> rejected by --break-match-filters: exit 101
+//   silentvideo  -> no output, exit 0
+//   forbidden01  -> HTTP 403 on the first audio download, works after that
+//   forbiddenxx  -> HTTP 403 on every audio download
+//   anything else -> metadata JSON (-J) or fake audio bytes (-o -)
+import { appendFileSync, readFileSync } from 'node:fs'
+
+const args = process.argv.slice(2)
+if (process.env.FAKE_LOG) {
+  appendFileSync(process.env.FAKE_LOG, JSON.stringify({ tool: 'yt-dlp', pid: process.pid, args }) + '\n')
+}
+
+const infoFile = args.includes('--load-info-json') && args[args.indexOf('--load-info-json') + 1]
+const id = infoFile
+  ? JSON.parse(readFileSync(infoFile, 'utf8')).id
+  : new URL(args.at(-1)).searchParams.get('v')
+
+// Like the real (PyInstaller) build, exit with an error code rather than by
+// signal when terminated.
+process.on('SIGTERM', () => {
+  process.stderr.write('ERROR: Interrupted by user\n')
+  process.exit(1)
+})
+
+const forbidden = () => {
+  process.stderr.write('ERROR: unable to download video data: HTTP Error 403: Forbidden\n')
+  process.exit(1)
+}
+const audioCalls = () => readFileSync(process.env.FAKE_LOG, 'utf8').trim().split('\n')
+  .map(line => JSON.parse(line))
+  .filter(call => call.tool === 'yt-dlp' && call.args.includes('--output')).length
+
+if (id === 'forbiddenxx' && !args.includes('--dump-single-json')) {
+  forbidden()
+} else if (id === 'forbidden01' && !args.includes('--dump-single-json') && audioCalls() < 2) {
+  forbidden()
+} else if (id === 'unavailable') {
+  process.stderr.write(`ERROR: [youtube] ${id}: Video unavailable. This video has been removed\n`)
+  process.exit(1)
+} else if (id === 'brokenvideo') {
+  process.stderr.write('ERROR: [youtube] brokenvideo: Something unexpected\n')
+  process.exit(1)
+} else if (id === 'toolongvide') {
+  process.exit(101)
+} else if (id === 'silentvideo') {
+  process.exit(0)
+} else if (args.includes('--dump-single-json')) {
+  process.stdout.write(JSON.stringify({
+    id,
+    title: 'Whole Lotta Love / Remaster?',
+    description: 'Line one\nLine two',
+    track: 'Whole Lotta Love',
+    artists: ['Led Zeppelin'],
+    album: 'Led Zeppelin II',
+    categories: ['Music'],
+    webpage_url: `https://www.youtube.com/watch?v=${id}`
+  }))
+} else if (id === 'slowrequest') {
+  process.stdout.write(Buffer.alloc(4096, 'a'))
+  setInterval(() => {}, 1000)
+} else {
+  process.stdout.write(`FAKE-AUDIO:${id}`)
+}
