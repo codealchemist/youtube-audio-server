@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { execFile, spawn } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { test } from 'node:test'
 import { promisify } from 'node:util'
@@ -25,13 +25,21 @@ test('--help prints usage', async () => {
   assert.match(stdout, /USAGE:/)
 })
 
-test('downloads to ./[id].mp3 by default', async t => {
+test('downloads to ./[video title].mp3 by default', async t => {
   const tools = useFakeTools(t)
   const cwd = tempDir(t)
   const { code, stdout } = await run(['--id', `https://youtu.be/${ID}`], { cwd, env: tools.env })
   assert.equal(code, 0)
   assert.match(stdout, /Audio saved/)
-  assert.equal(readFileSync(path.join(cwd, `${ID}.mp3`), 'utf8'), `MP3:FAKE-AUDIO:${ID}`)
+  assert.equal(readFileSync(path.join(cwd, 'Whole Lotta Love Remaster.mp3'), 'utf8'), `MP3:FAKE-AUDIO:${ID}`)
+})
+
+test('--use-id downloads to ./[id].mp3', async t => {
+  const tools = useFakeTools(t)
+  const cwd = tempDir(t)
+  const { code } = await run(['--id', ID, '--use-id'], { cwd, env: tools.env })
+  assert.equal(code, 0)
+  assert.deepEqual(readdirSync(cwd), [`${ID}.mp3`])
 })
 
 test('--file sets the output file (ignored in 2.x)', async t => {

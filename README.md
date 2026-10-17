@@ -171,13 +171,26 @@ In this mode, the server is not started.
 
 **Usage:**
 
-`yas --id [youtube-video-id|youtube-video-url] [--file [./sample.mp3]]`
+`yas --id [youtube-video-id|youtube-video-url] [--file [./sample.mp3]] [--use-id] [-m]`
+
+**File name:**
+
+By default the file is named after the video title, like
+`./Led Zeppelin - Whole Lotta Love (Official Music Video).mp3`.
+
+The title is made safe to use as a file name on macOS, Linux and Windows:
+characters like `/ \ : * ? " < > |` and control characters are replaced, leading
+dots and trailing dots or spaces are removed, and long titles are cut at 200 bytes.
+If nothing usable is left, the video id is used.
+
+Use `--use-id` to name the file `./[videoId].mp3` instead. It also skips looking up
+the title, so the download starts sooner. Use `--file` to choose the path yourself.
 
 **With metadata:**
 
 `yas --id 2zYDMN4h2hY -m`
 
-Use `-m` or `--metadata` to retrieve and persist metadata as ID3 tags, naming your file with the video title by default.
+Use `-m` or `--metadata` to retrieve and persist metadata as ID3 tags.
 
 Saved ID3 tags:
 
@@ -193,12 +206,9 @@ Saved ID3 tags:
 ```
 yas --id 2zYDMN4h2hY --file ~/Downloads/Music/sample.mp3
 yas --id 2zYDMN4h2hY
+yas --id 2zYDMN4h2hY --use-id
 yas --id https://www.youtube.com/watch?v=2zYDMN4h2hY
 ```
-
-**NOTE:**
-
-FILE defaults to `./[videoId].mp3` when not set.
 
 **Alternative method:**
 
@@ -247,14 +257,18 @@ downloader
   .onError(({ id, file, error }) => {
     console.error(`Sorry, an error occurred when trying to download ${id}`, error)
   })
-  .download({ id, file, metadata })
+  .download({ id, file, metadata, useId })
 ```
 
 Params:
 
 - `id`: Video ID or URL (`HQmmM_qwG4k` or `https://www.youtube.com/watch?v=HQmmM_qwG4k`)
-- `file`: Output file; defaults to video id or title when `metadata` is true
+- `file`: Output file; defaults to the sanitized video title in the folder
+- `useId`: Name the file after the video id instead of the title
 - `metadata`: Retrieve and set metadata as ID3 tags
+
+`onSuccess` receives `{ id, file }`, plus `filename` (the sanitized title, without
+`.mp3`) when the title was looked up.
 
 ### Get video metadata
 

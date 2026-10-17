@@ -40,7 +40,19 @@ test('setFolder is chainable and used for downloads', async t => {
       .onError(({ error }) => reject(error))
       .download({ id: ID })
   })
-  assert.equal(result.file, path.join(folder, `${ID}.mp3`))
+  assert.equal(result.file, path.join(folder, 'Whole Lotta Love Remaster.mp3'))
+})
+
+test('use-id (CLI style) names the file after the id', async t => {
+  useFakeTools(t)
+  const folder = tempDir(t)
+  const result = await new Promise((resolve, reject) => {
+    downloaderIn(folder)
+      .onSuccess(resolve)
+      .onError(({ error }) => reject(error))
+      .download({ id: ID, 'use-id': true })
+  })
+  assert.deepEqual(result, { id: ID, file: path.join(folder, `${ID}.mp3`) })
 })
 
 test('onError receives the id, file and error', async t => {
@@ -71,7 +83,7 @@ test('-m / metadata triggers onMetadata and returns the filename', async t => {
       .onError(({ error }) => reject(error))
       .download({ id: ID, m: true })
   })
-  assert.equal(result.filename, 'Whole Lotta Love  Remaster')
+  assert.equal(result.filename, 'Whole Lotta Love Remaster')
   assert.equal(seen[0].title, 'Whole Lotta Love / Remaster?')
 })
 

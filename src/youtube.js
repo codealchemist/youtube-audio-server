@@ -5,8 +5,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { PassThrough } from 'node:stream'
 import { styleText } from 'node:util'
-import sanitize from 'sanitize-filename'
 import { YasError, invalidVideoId } from './errors.js'
+import { safeFilename } from './filename.js'
 import { getVideoInfo, transcode } from './tools.js'
 import { parseVideoId, videoUrl } from './video-id.js'
 
@@ -111,41 +111,42 @@ export class YouTube {
     return toMetadata(await getVideoInfo(id), id)
   }
 
-  // Saves a video's audio as mp3. With `addMetadata`, tags it with title,
-  // description, artist, album, the video URL and cover art, and names the
-  // file after the title unless `file` is given.
-  download ({ id, file, addMetadata, onMetadata } = {}, callback) {
-    return withCallback(this.#download({ id, file, addMetadata, onMetadata }), callback)
+  // Saves a video's audio as mp3, named after the video title (sanitized) in
+  // the audio folder. `useId` names it [videoId].mp3 instead, and `file` sets
+  // the path. `addMetadata` tags it with title, description, artist, album,
+  // the video URL and cover art.
+  download ({ id, file, addMetadata, useId, onMetadata } = {}, callback) {
+    return withCallback(this.#download({ id, file, addMetadata, useId, onMetadata }), callback)
   }
 
-  async #download ({ id: input, file, addMetadata, onMetadata }) {
+  async #download ({ id: input, file, addMetadata, useId, onMetadata }) {
     const id = requireId(input)
+    const nameFromTitle = !file && !useId
     let info
-    let metadata
     let filename
 
-    if (addMetadata) {
+    if (addMetadata || nameFromTitle) {
       info = await getVideoInfo(id)
-      metadata = toMetadata(info, id)
+      const metadata = toMetadata(info, id)
       if (typeof onMetadata === 'function') onMetadata({ id, ...metadata })
-      filename = sanitize(metadata.title || '') || id
+      filename = safeFilename(metadata.title, id)
       this.log(`${styleText('white', 'ᐧ Title:')} ${styleText('yellow', metadata.title || id)}`)
     }
 
-    const target = path.resolve(file || path.join(this.audioFolder, `${filename || id}.mp3`))
+    const target = path.resolve(file || path.join(this.audioFolder, `${nameFromTitle ? filename : id}.mp3`))
     this.log('Saving audio...')
-    await this.saveAudio(id, target, { info })
+    await this.saveAudio(id, target, { info, addMetadata })
     this.log(`${styleText('green', '✔')} Audio saved\n  ${styleText('gray', target)}`)
 
     return filename ? { id, file: target, filename } : { id, file: target }
   }
 
   // Writes to a temporary file next to the target and renames it when done,
-  // so a failed download never leaves a truncated mp3 behind. With `info`
-  // (from getVideoInfo) it adds ID3 tags and cover art, and reuses the info
-  // instead of extracting the video again. `timeout` (ms) stops the job if it
-  // takes longer.
-  async saveAudio (input, target, { info, timeout = 0 } = {}) {
+  // so a failed download never leaves a truncated mp3 behind. `info` (from
+  // getVideoInfo) is reused instead of extracting the video again;
+  // `addMetadata` (requires `info`) adds ID3 tags and cover art. `timeout`
+  // (ms) stops the job if it takes longer.
+  async saveAudio (input, target, { info, addMetadata = false, timeout = 0 } = {}) {
     const id = requireId(input)
     const folder = path.dirname(target)
     await mkdir(folder, { recursive: true })
@@ -158,7 +159,7 @@ export class YouTube {
       let outputArgs = []
       let infoFile
       if (info) {
-        ({ inputs, outputArgs } = await this.#metadataArgs(toMetadata(info, id), workDir))
+        if (addMetadata) ({ inputs, outputArgs } = await this.#metadataArgs(toMetadata(info, id), workDir))
         infoFile = path.join(workDir, 'info.json')
         await writeFile(infoFile, JSON.stringify(info))
       }

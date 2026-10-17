@@ -7,6 +7,8 @@ release switches to yt-dlp and modernizes the project.
 
 ### Breaking
 
+- Downloads are named after the video title by default, sanitized to work as a
+  file name on any OS. Use `--use-id` (`useId: true`) for the 2.x `[videoId].mp3` names.
 - Requires Node.js 24 or newer, plus [yt-dlp](https://github.com/yt-dlp/yt-dlp)
   and [Deno](https://deno.com) installed on the system (in addition to ffmpeg).
 - The package is now an ES module. `require()` still works on Node.js 24.
@@ -23,6 +25,7 @@ release switches to yt-dlp and modernizes the project.
 - Promise support: `get`, `search` and `download` return promises when no callback is given.
 - `createApp()` to mount the Express app in your own server, and `parseVideoId()`.
 - Cover art is saved as ID3 metadata with `-m`.
+- `--use-id` / `useId` to name downloads after the video id.
 - Streams and downloads retry once when YouTube intermittently refuses the audio URL (HTTP 403).
 - `YAS_MAX_JOBS`, `YAS_MAX_DURATION`, `YAS_DOWNLOAD_TIMEOUT`, `YAS_CACHE_DIR`, `YAS_CACHE_MAX_FILES`, `HOST`, `YTDLP_PATH`,
   `FFMPEG_PATH` and `YTDLP_JS_RUNTIMES` settings.
@@ -31,6 +34,7 @@ release switches to yt-dlp and modernizes the project.
 ### Fixed
 
 - `--file` was ignored when downloading without metadata.
+- Long titles could produce file names over the 255-byte filesystem limit.
 - Streams leaked yt-dlp/ffmpeg processes when clients disconnected.
 - Stream errors could crash the server.
 - Search page tokens leaked into later searches.
