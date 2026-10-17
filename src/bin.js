@@ -1,21 +1,46 @@
 #!/usr/bin/env node
-const fs = require('fs')
-const path = require('path')
-const yas = require('./index')
-const args = require('minimist')(process.argv.slice(2))
-const { bold, blue, white, red, gray } = require('chalk')
-const port = args.p || args.port || process.env.PORT || 80
+import fs from 'node:fs'
+import path from 'node:path'
+import { parseArgs, styleText } from 'node:util'
+import { downloader, listen } from './index.js'
+import { terminalSafe } from './terminal.js'
+
+let args
+try {
+  ({ values: args } = parseArgs({
+    allowPositionals: true,
+    options: {
+      id: { type: 'string' },
+      file: { type: 'string' },
+      port: { type: 'string', short: 'p' },
+      metadata: { type: 'boolean', short: 'm' },
+      'use-id': { type: 'boolean' },
+      cache: { type: 'boolean', short: 'c' }, // Accepted for 2.x compatibility.
+      help: { type: 'boolean', short: 'h' }
+    }
+  }))
+} catch (error) {
+  // Unknown options, or an option missing its value.
+  console.error(styleText('red', error.message))
+  console.error(`Run ${styleText('gray', 'yas --help')} for usage.`)
+  process.exit(1)
+}
+const port = args.port || process.env.PORT || 80
 
 // print ascii art
-var artFile = path.join(__dirname, './ascii-art.txt')
-var art = fs.readFileSync(artFile, 'utf8')
+const art = fs.readFileSync(path.join(import.meta.dirname, 'ascii-art.txt'), 'utf8')
 console.log(art)
 
-function download ({ id, file, h, help }) {
+function fail (...message) {
+  console.error(...message)
+  process.exitCode = 1
+}
+
+function download ({ id, file, help }) {
   // Display usage.
-  if (help || h) {
-    console.info(yas.downloader.help())
-    process.exit()
+  if (help) {
+    console.info(downloader.help())
+    return true
   }
 
   // Nothing to download.
@@ -24,18 +49,13 @@ function download ({ id, file, h, help }) {
   // Validations.
   console.log('-'.repeat(80))
   if (!id) {
-    console.error(red('Missing param:'), gray('--id [youtube-video-id]'))
-    process.exit()
+    fail(styleText('red', 'Missing param:'), styleText('gray', '--id [youtube-video-id]'))
+    return true
   }
 
-  file = file || `./youtube-audio.mp3`
-  console.log(`${bold(white('DOWNLOAD:'))} ${blue(id)}`)
-  yas.downloader
-    .onSuccess(() => process.exit())
-    .onError(error => {
-      console.error(error)
-      process.exit()
-    })
+  console.log(`${styleText(['bold', 'white'], 'DOWNLOAD:')} ${styleText('blue', terminalSafe(id))}`)
+  downloader
+    .onError(({ error }) => fail(styleText('red', error.message), terminalSafe(error.cause?.message)))
     .download(args)
 
   return true
@@ -44,13 +64,14 @@ function download ({ id, file, h, help }) {
 function run () {
   // Run downloader.
   // If file download was specified using arguments:
-  // yas --video [youtube-video-id] [--file [./sample.mp3]]
+  // yas --id [youtube-video-id] [--file [./sample.mp3]]
   // Will download the file and exit.
   if (download(args)) return
 
   // Start youtube-audio-server.
-  yas.listen(port, () => {
-    console.log(' 🔈  Listening on ', blue(`http://localhost:${port}`))
+  const server = listen(port, error => {
+    if (error) return fail(styleText('red', `Can't listen on port ${port}:`), error.message)
+    console.log(' 🔈  Listening on ', styleText('blue', `http://localhost:${server.address().port}`))
     console.log('-'.repeat(80))
   })
 }

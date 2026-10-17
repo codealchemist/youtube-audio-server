@@ -1,0 +1,34 @@
+#!/usr/bin/env node
+// Stand-in for ffmpeg in tests: copies stdin to the output (a file or
+// pipe:1), prefixed with "MP3:". Fails like ffmpeg does on empty input.
+import { appendFileSync, writeFileSync } from 'node:fs'
+
+const args = process.argv.slice(2)
+if (process.env.FAKE_LOG) {
+  appendFileSync(process.env.FAKE_LOG, JSON.stringify({ tool: 'ffmpeg', pid: process.pid, args }) + '\n')
+}
+
+const output = args.at(-1)
+
+if (process.env.FAKE_FFMPEG_FAIL_EARLY) {
+  process.stderr.write('Unknown encoder libmp3lame\n')
+  process.exit(1)
+}
+const chunks = []
+let started = false
+
+process.stdin.on('data', chunk => {
+  if (output !== 'pipe:1') return chunks.push(chunk)
+  if (!started) process.stdout.write('MP3:')
+  started = true
+  process.stdout.write(chunk)
+})
+
+process.stdin.on('end', () => {
+  const received = output === 'pipe:1' ? started : chunks.length > 0
+  if (!received || process.env.FAKE_FFMPEG_FAIL) {
+    process.stderr.write('pipe:0: Invalid data found when processing input\n')
+    process.exit(1)
+  }
+  if (output !== 'pipe:1') writeFileSync(output, Buffer.concat([Buffer.from('MP3:'), ...chunks]))
+})

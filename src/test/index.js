@@ -1,6 +1,0 @@
-require('./download')
-require('./metadata')
-require('./search-set-key')
-require('./search')
-require('./set-folder')
-require('./server')
