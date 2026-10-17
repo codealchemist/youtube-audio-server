@@ -12,6 +12,14 @@ const MAX_INFO_BYTES = 32 * 1024 * 1024
 const INFO_TIMEOUT_MS = 60 * 1000
 // yt-dlp's exit code when --break-match-filters rejects a video.
 const REJECTED_BY_FILTER = 101
+// Download progress, one line per update on stderr (stdout carries the audio).
+const PROGRESS_PREFIX = '[yas-progress] '
+const PROGRESS_ARGS = [
+  '--progress',
+  '--newline',
+  '--progress-template',
+  `download:${PROGRESS_PREFIX}%(progress.downloaded_bytes)s %(progress.total_bytes)s %(progress.total_bytes_estimate)s %(progress.speed)s %(progress.eta)s`
+]
 
 const TOOL_ENV = { 'yt-dlp': 'YTDLP_PATH', ffmpeg: 'FFMPEG_PATH' }
 const toolPath = name => process.env[TOOL_ENV[name]] || name
@@ -25,7 +33,6 @@ function ytdlpArgs (id, extra, { infoFile } = {}) {
     '--use-extractors', 'youtube',
     '--no-playlist',
     '--no-warnings',
-    '--no-progress',
     '--quiet'
   ]
   if (process.env.YTDLP_JS_RUNTIMES) {
@@ -52,18 +59,42 @@ function start (name, args, stdin = 'ignore') {
     windowsHide: true
   })
 
+  // Progress lines become 'progress' events; everything else is kept (the
+  // tail) to explain failures.
   let stderr = ''
+  let partial = ''
+  const addLine = line => {
+    if (line.startsWith(PROGRESS_PREFIX)) {
+      child.emit('progress', parseProgress(line.slice(PROGRESS_PREFIX.length)))
+      return
+    }
+    stderr = (stderr + line + '\n').slice(-STDERR_TAIL_CHARS)
+  }
   child.stderr.setEncoding('utf8')
   child.stderr.on('data', chunk => {
-    stderr = (stderr + chunk).slice(-STDERR_TAIL_CHARS)
+    const lines = (partial + chunk).split('\n')
+    partial = lines.pop()
+    lines.forEach(addLine)
   })
 
   child.done = new Promise((resolve, reject) => {
     child.on('error', error => reject(error.code === 'ENOENT' ? missingTool(name, error) : error))
-    child.on('close', (code, signal) => resolve({ code, signal, stderr }))
+    child.on('close', (code, signal) => {
+      if (partial) addLine(partial)
+      resolve({ code, signal, stderr })
+    })
   })
 
   return child
+}
+
+// yt-dlp prints "NA" (or "None") for unknown values.
+function parseProgress (line) {
+  const [downloaded, total, estimate, speed, eta] = line.trim().split(' ').map(value => {
+    const number = Number(value)
+    return Number.isFinite(number) ? number : null
+  })
+  return { downloaded: downloaded ?? 0, total: total ?? estimate, speed, eta }
 }
 
 function isRunning (child) {
@@ -135,13 +166,15 @@ export async function getVideoInfo (id) {
 // `output` (a file path, or `pipe:1` for stdout). Extra inputs (cover art) and
 // output arguments (maps, metadata) are appended for the metadata download.
 // With `infoFile`, yt-dlp reuses info from getVideoInfo instead of extracting
-// the video again.
+// the video again. `onProgress` receives { downloaded, total, speed, eta }
+// (bytes, bytes/s, seconds; null when unknown) as yt-dlp downloads.
 //
 // Returns ffmpeg's stdout, a `done` promise that rejects with a YasError when
 // either tool fails, and `kill` to stop both processes (e.g. when a client
 // disconnects). A killed job resolves `done` instead of rejecting.
-export function transcode (id, { output = 'pipe:1', inputs = [], outputArgs = [], infoFile, timeout = 0 } = {}) {
-  const ytdlp = start('yt-dlp', ytdlpArgs(id, ['--format', 'bestaudio/best', '--output', '-'], { infoFile }))
+export function transcode (id, { output = 'pipe:1', inputs = [], outputArgs = [], infoFile, timeout = 0, onProgress } = {}) {
+  const ytdlp = start('yt-dlp', ytdlpArgs(id, ['--format', 'bestaudio/best', '--output', '-', ...PROGRESS_ARGS], { infoFile }))
+  if (onProgress) ytdlp.on('progress', onProgress)
   const ffmpeg = start('ffmpeg', [
     '-hide_banner',
     '-loglevel', 'error',
@@ -169,19 +202,24 @@ export function transcode (id, { output = 'pipe:1', inputs = [], outputArgs = []
   }
 
   // Once one process fails, the other is stopped and usually exits with an
-  // error of its own (yt-dlp gets a broken pipe when ffmpeg dies), so only
-  // the first failure is reported.
+  // error of its own: yt-dlp gets a broken pipe when ffmpeg dies, and ffmpeg
+  // fails when yt-dlp's output ends early. So only the first to exit with an
+  // error is reported. 'exit' fires before 'close' (which waits for the
+  // process's pipes), so it reflects the real order.
   let failure = null
   let stopped = false
   let timedOut = false
-  const watch = (name, child) => child.done.then(({ code }) => {
-    if (code === 0 || failure || stopped || timedOut) return
-    failure = name
-    stopAll()
-  }, () => {
-    failure ??= name
-    stopAll()
-  })
+  const watch = (name, child) => {
+    child.once('exit', code => {
+      if (code === 0 || failure || stopped || timedOut) return
+      failure = name
+      stopAll()
+    })
+    child.done.catch(() => {
+      failure ??= name
+      stopAll()
+    })
+  }
   watch('yt-dlp', ytdlp)
   watch('ffmpeg', ffmpeg)
 
@@ -195,11 +233,16 @@ export function transcode (id, { output = 'pipe:1', inputs = [], outputArgs = []
   const done = Promise.all([ytdlp.done, ffmpeg.done])
     .then(([ytdlpResult, ffmpegResult]) => {
       if (timedOut) throw timeoutError('fetching audio')
-      // ffmpeg fails on empty input, so with no audio from yt-dlp the cause is yt-dlp.
-      if (failure === 'yt-dlp' || (failure === 'ffmpeg' && received === 0 && ytdlpResult.code !== 0)) {
-        throw ytdlpError(ytdlpResult)
+      // Exits that happen together can be seen in either order. A broken pipe
+      // from yt-dlp while ffmpeg failed by itself (not stopped by us) means
+      // ffmpeg went first.
+      const ffmpegFailedAlone = ffmpegResult.code !== 0 && !ffmpegResult.signal
+      if (failure === 'yt-dlp' && ffmpegFailedAlone && /Broken pipe|EPIPE/i.test(ytdlpResult.stderr)) {
+        failure = 'ffmpeg'
       }
-      if (!stopped && received === 0) {
+      if (failure === 'yt-dlp') throw ytdlpError(ytdlpResult)
+      // yt-dlp succeeding without sending anything also makes ffmpeg fail.
+      if (!stopped && received === 0 && ytdlpResult.code === 0) {
         throw new YasError('No audio received from YouTube', { status: 502, code: 'UPSTREAM' })
       }
       if (failure === 'ffmpeg') throw ffmpegError(ffmpegResult)

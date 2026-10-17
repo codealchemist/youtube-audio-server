@@ -33,7 +33,8 @@ export class Downloader {
         file,
         addMetadata: m || metadata,
         useId: useId || useIdFlag,
-        onMetadata: this.onMetadataCallback
+        onMetadata: this.onMetadataCallback,
+        onProgress: this.onProgressCallback
       })
       .then(
         data => this.onSuccessCallback?.(data),
@@ -55,6 +56,12 @@ export class Downloader {
 
   onMetadata (callback) {
     if (typeof callback === 'function') this.onMetadataCallback = callback
+    return this
+  }
+
+  // Receives { downloaded, total, speed, eta } while the audio downloads.
+  onProgress (callback) {
+    if (typeof callback === 'function') this.onProgressCallback = callback
     return this
   }
 

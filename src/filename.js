@@ -1,4 +1,5 @@
 import sanitize from 'sanitize-filename'
+import { terminalSafe } from './terminal.js'
 
 // Most filesystems allow 255 bytes per name. Leave room for ".mp3" and the
 // temporary ".<name>.mp3.<uuid>.part" file written while downloading.
@@ -6,11 +7,12 @@ const MAX_NAME_BYTES = 200
 const graphemes = new Intl.Segmenter()
 
 // Turns a video title into a name that is safe on macOS, Linux and Windows:
-// no path separators, reserved characters or names, control characters,
-// leading dots (hidden files) or trailing dots and spaces. Falls back to
-// `fallback` when nothing usable is left.
+// no path separators, reserved characters or names, escape sequences, control
+// or bidi characters (which can disguise a name), leading dots (hidden files)
+// or trailing dots and spaces. Falls back to `fallback` when nothing usable
+// is left.
 export function safeFilename (title, fallback) {
-  let name = sanitize(String(title ?? '').normalize('NFC'), { replacement: ' ' })
+  let name = sanitize(terminalSafe(title).normalize('NFC'), { replacement: ' ' })
   name = trim(name.replace(/\s+/g, ' '))
 
   if (Buffer.byteLength(name) > MAX_NAME_BYTES) {

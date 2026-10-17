@@ -6,6 +6,7 @@ import express from 'express'
 import { AudioCache } from './audio-cache.js'
 import { envInt } from './env.js'
 import { YasError, invalidVideoId } from './errors.js'
+import { terminalSafe } from './terminal.js'
 import defaultYoutube from './youtube.js'
 import { isVideoId } from './video-id.js'
 
@@ -23,9 +24,6 @@ const INDEX_CSP = [
   "frame-ancestors 'none'"
 ].join('; ')
 const DEFAULT_CSP = "default-src 'none'; frame-ancestors 'none'"
-
-// Strips control characters so request input can't forge log lines.
-const clean = value => String(value).replace(/[\x00-\x1f\x7f]/g, '') // eslint-disable-line no-control-regex
 
 function log (...args) {
   console.log(styleText('gray', new Date().toISOString()), ...args)
@@ -89,7 +87,7 @@ export function createApp ({
 
   app.get('/search/:query{/:page}', async (req, res) => {
     const { query, page } = req.params
-    logger(`Searching ${styleText('yellow', clean(query))}`, page ? styleText('gray', `#${clean(page)}`) : '')
+    logger(`Searching ${styleText('yellow', terminalSafe(query))}`, page ? styleText('gray', `#${terminalSafe(page)}`) : '')
     res.json(await youtube.search({ query, page }))
   })
 
@@ -153,7 +151,7 @@ export function createApp ({
   app.use((error, req, res, next) => {
     const status = error.status || error.statusCode || 500
     if (status >= 500) {
-      logger(styleText('red', `${req.method} ${clean(req.path)} failed:`), error.message, error.cause?.message ?? '')
+      logger(styleText('red', `${req.method} ${terminalSafe(req.path)} failed:`), error.message, terminalSafe(error.cause?.message))
     }
     if (res.headersSent) {
       res.destroy()

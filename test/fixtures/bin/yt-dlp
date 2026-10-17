@@ -7,6 +7,8 @@
 //   silentvideo  -> no output, exit 0
 //   forbidden01  -> HTTP 403 on the first audio download, works after that
 //   forbiddenxx  -> HTTP 403 on every audio download
+//   evil__title  -> a title with terminal escape sequences
+// Audio downloads print progress lines on stderr when asked for (--progress).
 //   anything else -> metadata JSON (-J) or fake audio bytes (-o -)
 import { appendFileSync, readFileSync } from 'node:fs'
 
@@ -27,6 +29,11 @@ process.on('SIGTERM', () => {
   process.exit(1)
 })
 
+function progress (downloaded, total, speed = 'NA', eta = 'NA') {
+  if (!args.includes('--progress')) return
+  process.stderr.write(`[yas-progress] ${downloaded} ${total} NA ${speed} ${eta}\n`)
+}
+
 const forbidden = () => {
   process.stderr.write('ERROR: unable to download video data: HTTP Error 403: Forbidden\n')
   process.exit(1)
@@ -43,6 +50,7 @@ if (id === 'forbiddenxx' && !args.includes('--dump-single-json')) {
   process.stderr.write(`ERROR: [youtube] ${id}: Video unavailable. This video has been removed\n`)
   process.exit(1)
 } else if (id === 'brokenvideo') {
+  progress(1024, 4096)
   process.stderr.write('ERROR: [youtube] brokenvideo: Something unexpected\n')
   process.exit(1)
 } else if (id === 'toolongvide') {
@@ -52,7 +60,9 @@ if (id === 'forbiddenxx' && !args.includes('--dump-single-json')) {
 } else if (args.includes('--dump-single-json')) {
   process.stdout.write(JSON.stringify({
     id,
-    title: 'Whole Lotta Love / Remaster?',
+    title: id === 'evil__title'
+      ? '\u001b[31mRed\u001b]0;pwned\u0007 \u202eevil\u009b2J\nnext'
+      : 'Whole Lotta Love / Remaster?',
     description: 'Line one\nLine two',
     track: 'Whole Lotta Love',
     artists: ['Led Zeppelin'],
@@ -64,5 +74,7 @@ if (id === 'forbiddenxx' && !args.includes('--dump-single-json')) {
   process.stdout.write(Buffer.alloc(4096, 'a'))
   setInterval(() => {}, 1000)
 } else {
+  progress(5, 15, '7.5', '1')
+  progress(15, 15, 'NA', 'NA')
   process.stdout.write(`FAKE-AUDIO:${id}`)
 }

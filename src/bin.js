@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { parseArgs, styleText } from 'node:util'
 import { downloader, listen } from './index.js'
+import { terminalSafe } from './terminal.js'
 
 let args
 try {
@@ -52,9 +53,9 @@ function download ({ id, file, help }) {
     return true
   }
 
-  console.log(`${styleText(['bold', 'white'], 'DOWNLOAD:')} ${styleText('blue', id)}`)
+  console.log(`${styleText(['bold', 'white'], 'DOWNLOAD:')} ${styleText('blue', terminalSafe(id))}`)
   downloader
-    .onError(({ error }) => fail(styleText('red', error.message), error.cause?.message ?? ''))
+    .onError(({ error }) => fail(styleText('red', error.message), terminalSafe(error.cause?.message)))
     .download(args)
 
   return true

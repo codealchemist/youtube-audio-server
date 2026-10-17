@@ -87,6 +87,19 @@ test('-m / metadata triggers onMetadata and returns the filename', async t => {
   assert.equal(seen[0].title, 'Whole Lotta Love / Remaster?')
 })
 
+test('onProgress is chainable and receives progress', async t => {
+  useFakeTools(t)
+  const updates = []
+  await new Promise((resolve, reject) => {
+    downloaderIn(tempDir(t))
+      .onProgress(progress => updates.push(progress))
+      .onSuccess(resolve)
+      .onError(({ error }) => reject(error))
+      .download({ id: ID, 'use-id': true })
+  })
+  assert.equal(updates.at(-1).downloaded, 15)
+})
+
 test('help describes usage', () => {
   assert.match(new Downloader().help(), /yas --id \[youtube-video-id\|youtube-video-url\]/)
 })
