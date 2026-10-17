@@ -56,6 +56,24 @@ test('no duration limit by default', async t => {
   assert.equal(tools.calls('yt-dlp')[0].args.includes('--break-match-filters'), false)
 })
 
+test('reports download progress from yt-dlp', async t => {
+  useFakeTools(t)
+  const updates = []
+  await quietYouTube().download({ id: ID, useId: true, file: path.join(tempDir(t), 'x.mp3'), onProgress: p => updates.push(p) })
+  assert.deepEqual(updates, [
+    { downloaded: 5, total: 15, speed: 7.5, eta: 1 },
+    { downloaded: 15, total: 15, speed: null, eta: null }
+  ])
+})
+
+test('progress lines are kept out of error details', async t => {
+  useFakeTools(t)
+  await assert.rejects(quietYouTube().download({ id: 'brokenvideo', useId: true, file: path.join(tempDir(t), 'x.mp3') }), error => {
+    assert.equal(error.cause.message, 'ERROR: [youtube] brokenvideo: Something unexpected')
+    return true
+  })
+})
+
 test('stream rejects invalid ids without spawning anything', t => {
   const tools = useFakeTools(t)
   assert.throws(() => quietYouTube().stream('--exec=evil'), { code: 'INVALID_ID', status: 400 })

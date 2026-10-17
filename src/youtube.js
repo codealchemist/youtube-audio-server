@@ -7,6 +7,7 @@ import { PassThrough } from 'node:stream'
 import { styleText } from 'node:util'
 import { YasError, invalidVideoId } from './errors.js'
 import { safeFilename } from './filename.js'
+import { ProgressLine, describeProgress, terminalSafe } from './terminal.js'
 import { getVideoInfo, transcode } from './tools.js'
 import { parseVideoId, videoUrl } from './video-id.js'
 
@@ -114,39 +115,55 @@ export class YouTube {
   // Saves a video's audio as mp3, named after the video title (sanitized) in
   // the audio folder. `useId` names it [videoId].mp3 instead, and `file` sets
   // the path. `addMetadata` tags it with title, description, artist, album,
-  // the video URL and cover art.
-  download ({ id, file, addMetadata, useId, onMetadata } = {}, callback) {
-    return withCallback(this.#download({ id, file, addMetadata, useId, onMetadata }), callback)
+  // the video URL and cover art. `onProgress` gets download progress (see
+  // transcode). Unless `quiet`, progress is shown on the terminal.
+  download ({ id, file, addMetadata, useId, onMetadata, onProgress } = {}, callback) {
+    return withCallback(this.#download({ id, file, addMetadata, useId, onMetadata, onProgress }), callback)
   }
 
-  async #download ({ id: input, file, addMetadata, useId, onMetadata }) {
+  async #download ({ id: input, file, addMetadata, useId, onMetadata, onProgress }) {
     const id = requireId(input)
     const nameFromTitle = !file && !useId
+    const status = this.quiet ? null : new ProgressLine()
     let info
     let filename
 
-    if (addMetadata || nameFromTitle) {
-      info = await getVideoInfo(id)
-      const metadata = toMetadata(info, id)
-      if (typeof onMetadata === 'function') onMetadata({ id, ...metadata })
-      filename = safeFilename(metadata.title, id)
-      this.log(`${styleText('white', 'ᐧ Title:')} ${styleText('yellow', metadata.title || id)}`)
+    try {
+      if (addMetadata || nameFromTitle) {
+        status?.step('Looking up video...')
+        info = await getVideoInfo(id)
+        const metadata = toMetadata(info, id)
+        status?.stop()
+        if (typeof onMetadata === 'function') onMetadata({ id, ...metadata })
+        filename = safeFilename(metadata.title, id)
+        this.log(`${styleText('white', 'ᐧ Title:')} ${styleText('yellow', terminalSafe(metadata.title) || id)}`)
+      }
+
+      const target = path.resolve(file || path.join(this.audioFolder, `${nameFromTitle ? filename : id}.mp3`))
+      status?.step('Starting download...')
+      await this.saveAudio(id, target, {
+        info,
+        addMetadata,
+        onProgress: progress => {
+          status?.update(describeProgress(progress))
+          if (typeof onProgress === 'function') onProgress(progress)
+        }
+      })
+      status?.stop()
+      this.log(`${styleText('green', '✔')} Audio saved\n  ${styleText('gray', terminalSafe(target))}`)
+
+      return filename ? { id, file: target, filename } : { id, file: target }
+    } finally {
+      status?.stop()
     }
-
-    const target = path.resolve(file || path.join(this.audioFolder, `${nameFromTitle ? filename : id}.mp3`))
-    this.log('Saving audio...')
-    await this.saveAudio(id, target, { info, addMetadata })
-    this.log(`${styleText('green', '✔')} Audio saved\n  ${styleText('gray', target)}`)
-
-    return filename ? { id, file: target, filename } : { id, file: target }
   }
 
   // Writes to a temporary file next to the target and renames it when done,
   // so a failed download never leaves a truncated mp3 behind. `info` (from
   // getVideoInfo) is reused instead of extracting the video again;
   // `addMetadata` (requires `info`) adds ID3 tags and cover art. `timeout`
-  // (ms) stops the job if it takes longer.
-  async saveAudio (input, target, { info, addMetadata = false, timeout = 0 } = {}) {
+  // (ms) stops the job if it takes longer. `onProgress` gets download progress.
+  async saveAudio (input, target, { info, addMetadata = false, timeout = 0, onProgress } = {}) {
     const id = requireId(input)
     const folder = path.dirname(target)
     await mkdir(folder, { recursive: true })
@@ -165,7 +182,7 @@ export class YouTube {
       }
       for (let attempt = 0; ; attempt++) {
         // A retry extracts the video again: the saved info has the refused URL.
-        const job = transcode(id, { output: tmpFile, inputs, outputArgs, infoFile: attempt ? undefined : infoFile, timeout })
+        const job = transcode(id, { output: tmpFile, inputs, outputArgs, infoFile: attempt ? undefined : infoFile, timeout, onProgress })
         job.stdout.resume()
         try {
           await job.done

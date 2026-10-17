@@ -173,13 +173,17 @@ In this mode, the server is not started.
 
 `yas --id [youtube-video-id|youtube-video-url] [--file [./sample.mp3]] [--use-id] [-m]`
 
+While it runs, the terminal shows the video title and live download progress
+(percent, size, speed and time left).
+
 **File name:**
 
 By default the file is named after the video title, like
 `./Led Zeppelin - Whole Lotta Love (Official Music Video).mp3`.
 
 The title is made safe to use as a file name on macOS, Linux and Windows:
-characters like `/ \ : * ? " < > |` and control characters are replaced, leading
+characters like `/ \ : * ? " < > |`, terminal escape sequences, control characters
+and invisible bidi characters (which can disguise a name) are removed, leading
 dots and trailing dots or spaces are removed, and long titles are cut at 200 bytes.
 If nothing usable is left, the video id is used.
 
@@ -253,6 +257,9 @@ downloader
   .setFolder('some/folder') // Optionally set a folder for downloaded content.
   .onSuccess(({ id, file }) => {
     console.log(`Yay! Audio (${id}) downloaded successfully into "${file}"!`)
+  })
+  .onProgress(({ downloaded, total, speed, eta }) => {
+    // Bytes, bytes per second and seconds; total, speed and eta may be null.
   })
   .onError(({ id, file, error }) => {
     console.error(`Sorry, an error occurred when trying to download ${id}`, error)

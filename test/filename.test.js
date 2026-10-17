@@ -25,6 +25,11 @@ test('cannot escape the target folder', () => {
   }
 })
 
+test('removes escape sequences and bidi characters that could disguise a name', () => {
+  assert.equal(safeFilename('\u001b[31mRed\u001b[0m Song', ID), 'Red Song')
+  assert.equal(safeFilename('invoice\u202egpj.exe', ID), 'invoice gpj.exe')
+})
+
 test('removes leading dots and trailing dots or spaces', () => {
   assert.equal(safeFilename('.hidden track', ID), 'hidden track')
   assert.equal(safeFilename('...And Justice for All...', ID), 'And Justice for All')

@@ -26,6 +26,8 @@ release switches to yt-dlp and modernizes the project.
 - `createApp()` to mount the Express app in your own server, and `parseVideoId()`.
 - Cover art is saved as ID3 metadata with `-m`.
 - `--use-id` / `useId` to name downloads after the video id.
+- Download progress in the terminal (title, percent, size, speed, time left) and a
+  `downloader.onProgress` callback.
 - Streams and downloads retry once when YouTube intermittently refuses the audio URL (HTTP 403).
 - `YAS_MAX_JOBS`, `YAS_MAX_DURATION`, `YAS_DOWNLOAD_TIMEOUT`, `YAS_CACHE_DIR`, `YAS_CACHE_MAX_FILES`, `HOST`, `YTDLP_PATH`,
   `FFMPEG_PATH` and `YTDLP_JS_RUNTIMES` settings.
@@ -35,6 +37,7 @@ release switches to yt-dlp and modernizes the project.
 
 - `--file` was ignored when downloading without metadata.
 - Long titles could produce file names over the 255-byte filesystem limit.
+- Video titles could inject terminal escape sequences into CLI output.
 - Streams leaked yt-dlp/ffmpeg processes when clients disconnected.
 - Stream errors could crash the server.
 - Search page tokens leaked into later searches.

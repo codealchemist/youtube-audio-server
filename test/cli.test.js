@@ -34,6 +34,17 @@ test('downloads to ./[video title].mp3 by default', async t => {
   assert.equal(readFileSync(path.join(cwd, 'Whole Lotta Love Remaster.mp3'), 'utf8'), `MP3:FAKE-AUDIO:${ID}`)
 })
 
+test('shows progress steps and prints titles safely', async t => {
+  const tools = useFakeTools(t)
+  const cwd = tempDir(t)
+  const { code, stdout } = await run(['--id', 'evil__title'], { cwd, env: tools.env })
+  assert.equal(code, 0)
+  assert.match(stdout, /Looking up video\.\.\./)
+  assert.match(stdout, /Title: Red evil next/)
+  assert.doesNotMatch(stdout, /[\u001b\u0007\u009b\u202e]/)
+  assert.deepEqual(readdirSync(cwd), ['Red evil next.mp3'])
+})
+
 test('--use-id downloads to ./[id].mp3', async t => {
   const tools = useFakeTools(t)
   const cwd = tempDir(t)
