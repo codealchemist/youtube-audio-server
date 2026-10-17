@@ -171,24 +171,53 @@ test('reports a missing yt-dlp clearly', async t => {
   })
 })
 
-test('download saves to [id].mp3 in the audio folder', async t => {
-  useFakeTools(t)
+test('download names the file after the sanitized title, without tags', async t => {
+  const tools = useFakeTools(t)
   const folder = tempDir(t)
   const youtube = quietYouTube({ folder })
 
   const result = await youtube.download({ id: `https://www.youtube.com/watch?v=${ID}` })
-  assert.deepEqual(result, { id: ID, file: path.join(folder, `${ID}.mp3`) })
+  assert.deepEqual(result, {
+    id: ID,
+    file: path.join(folder, 'Whole Lotta Love Remaster.mp3'),
+    filename: 'Whole Lotta Love Remaster'
+  })
   assert.equal(readFileSync(result.file, 'utf8'), `MP3:FAKE-AUDIO:${ID}`)
+  assert.equal(tools.calls('ffmpeg')[0].args.includes('-metadata'), false)
+
+  // The title lookup is reused for the audio, so the video is extracted once.
+  const ytdlpCalls = tools.calls('yt-dlp')
+  assert.ok(ytdlpCalls[0].args.includes('--dump-single-json'))
+  assert.ok(ytdlpCalls[1].args.includes('--load-info-json'))
+})
+
+test('useId saves to [id].mp3 without looking up the title', async t => {
+  const tools = useFakeTools(t)
+  const folder = tempDir(t)
+  const result = await quietYouTube({ folder }).download({ id: ID, useId: true })
+  assert.deepEqual(result, { id: ID, file: path.join(folder, `${ID}.mp3`) })
+  assert.equal(tools.calls('yt-dlp').length, 1)
+  assert.equal(tools.calls('yt-dlp')[0].args.includes('--dump-single-json'), false)
+})
+
+test('useId with metadata still tags the file', async t => {
+  const tools = useFakeTools(t)
+  mockYouTubeFetch(t, jpeg)
+  const folder = tempDir(t)
+  const result = await quietYouTube({ folder }).download({ id: ID, useId: true, addMetadata: true })
+  assert.equal(result.file, path.join(folder, `${ID}.mp3`))
+  assert.ok(tools.calls('ffmpeg')[0].args.includes('-metadata'))
 })
 
 test('download honours an explicit file, and supports callbacks', async t => {
-  useFakeTools(t)
+  const tools = useFakeTools(t)
   const file = path.join(tempDir(t), 'nested', 'song.mp3')
   const result = await new Promise((resolve, reject) => {
     quietYouTube().download({ id: ID, file }, (error, data) => error ? reject(error) : resolve(data))
   })
   assert.equal(result.file, file)
   assert.equal(readFileSync(file, 'utf8'), `MP3:FAKE-AUDIO:${ID}`)
+  assert.equal(tools.calls('yt-dlp').length, 1, 'no title lookup needed')
 })
 
 test('failed downloads leave no files behind', async t => {
@@ -210,8 +239,8 @@ test('download with metadata tags the file and names it after the title', async 
     onMetadata: metadata => seen.push(metadata)
   })
 
-  assert.equal(result.filename, 'Whole Lotta Love  Remaster')
-  assert.equal(result.file, path.join(folder, 'Whole Lotta Love  Remaster.mp3'))
+  assert.equal(result.filename, 'Whole Lotta Love Remaster')
+  assert.equal(result.file, path.join(folder, 'Whole Lotta Love Remaster.mp3'))
   assert.equal(seen[0].id, ID)
   assert.equal(seen[0].artist, 'Led Zeppelin')
   assert.equal(requests[0].url.href, `https://img.youtube.com/vi/${ID}/0.jpg`)
@@ -226,7 +255,7 @@ test('download with metadata tags the file and names it after the title', async 
     `comment=https://www.youtube.com/watch?v=${ID}`
   ])
   assert.ok(args.includes('1:v:0'), 'maps the cover image')
-  assert.deepEqual(readdirSync(folder), ['Whole Lotta Love  Remaster.mp3'])
+  assert.deepEqual(readdirSync(folder), ['Whole Lotta Love Remaster.mp3'])
 
   // The video is extracted once; the audio download reuses that info.
   const ytdlpCalls = tools.calls('yt-dlp')

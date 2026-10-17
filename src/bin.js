@@ -13,6 +13,7 @@ try {
       file: { type: 'string' },
       port: { type: 'string', short: 'p' },
       metadata: { type: 'boolean', short: 'm' },
+      'use-id': { type: 'boolean' },
       cache: { type: 'boolean', short: 'c' }, // Accepted for 2.x compatibility.
       help: { type: 'boolean', short: 'h' }
     }
