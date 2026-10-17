@@ -44,6 +44,32 @@ Or:
 
 `npm install youtube-audio-server`
 
+## Upgrading from 2.x
+
+Version 3 replaces the YouTube library that stopped working (`ytdl-core`) with
+yt-dlp. The API, CLI options and REST routes keep their names, but check these
+before upgrading:
+
+1. **Install the new requirements:** Node.js 24, yt-dlp and Deno, plus ffmpeg as
+   before (see [Requirements](#requirements)).
+2. **File names:** downloads are named after the video title. Add `--use-id`
+   (`useId: true`) to keep `[videoId].mp3` names.
+3. **Concurrent listeners:** only 4 audio requests run at once by default, and the
+   rest get `503`. Set `YAS_MAX_JOBS` if your server needs more.
+4. **`/cache` endpoint:** it now waits until the file is downloaded before sending
+   it, like `/chunk`. Use `/[videoId]` for audio that starts right away.
+5. **Error handling:** HTTP errors are JSON (`{ "error": "..." }`) with a meaningful
+   status, and invalid ids get `400`. In code, errors are `YasError` objects with
+   `status`, `code` and `cause`. `search` and `get` without an API key now fail
+   instead of returning nothing.
+6. **Scripts using the CLI:** failures exit with status 1, and unknown options are
+   rejected.
+7. **Docker:** the container listens on port 8080 (`-p 80:8080` to keep port 80),
+   and arguments after the image name go straight to the CLI.
+8. **Heroku:** the buildpack files are gone. Deploy the Docker image instead.
+
+The full list is in the [changelog](CHANGELOG.md).
+
 ## Docker
 
 ```

@@ -19,6 +19,24 @@ release switches to yt-dlp and modernizes the project.
 - `/chunk` and `/cache` now serve files from a disk cache. `/cache` is an alias of `/chunk`.
 - The `cache` option of `downloader.download` is ignored.
 - Removed the Heroku buildpack files. Use the Docker image instead.
+- At most 4 audio requests run at once by default; more get `503 Server busy`.
+  Raise it with `YAS_MAX_JOBS`.
+- `/cache` no longer starts streaming right away: like `/chunk`, it sends the
+  file once it has been downloaded.
+- Errors passed to callbacks (and promise rejections) are `YasError` instances
+  with `status`, `code` and `cause`, instead of strings or raw YouTube API
+  error objects.
+- `onSuccess` and download results return the file as an absolute path.
+- The CLI exits with status 1 on errors, and rejects unknown options and
+  options missing their value instead of ignoring them.
+- `--file` is respected when downloading without `-m`, and a URL passed to
+  `--id` no longer saves as `youtube-audio.mp3` (both 2.x bugs).
+- Docker image: listens on port 8080 instead of 80, runs as a non-root user,
+  is built from the source instead of installing from npm, and uses an
+  `ENTRYPOINT`, so arguments after the image name go to the CLI
+  (`docker run youtube-audio-server --id ...`).
+- Removed the `test-run` and `test-focus` npm scripts; `npm test` runs lint
+  and the test suite.
 
 ### Added
 
